@@ -1,0 +1,22 @@
+{
+  "name": "ts-lib-template",
+  "version": "1.0.0",
+  "description": "Library for interacting with the HAuth server",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "watch": "tsc -p tsconfig.json --watch",
+    "clean": "rm -rf dist",
+    "demo": "vite demo",
+    "demo:build": "vite build demo"
+  },
+  "author": "Henry Walters",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^5.0.0"
+  }
+}
