@@ -4,12 +4,32 @@
         <meta charset="utf-8" />
         <title>A demo - you better change me</title>
   </head>
-  <body>
-        <h1>TypeScript Library Demo</h1>
-        <button id='helloworld'>Hello World</button>
+  <header>
+        <h1>HGTS - <span id='fps'></span></h1>
+  </header>
+  <body style="margin: 10px">
+      <div id='container' style="border: 1px solid black;"></div>
   </body>
   <footer>
         <script src="./main.ts" type="module"></script>
         <style src='./index.css'></style>
+        <style>
+
+            html, body {
+                  margin: 0;
+                  padding: 0;
+                  height: 100%;
+            }
+
+            body {
+                  display: flex;
+                  flex-direction: column;
+            }
+
+            #container {
+                  flex: 1;
+                  width: 100%;
+            }
+        </style>
   </footer>
 </html>
