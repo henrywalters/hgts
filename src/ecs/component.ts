@@ -1,39 +1,25 @@
-import { Entity } from "./entity";
+import { IComponent, IComponentPool, ComponentCtr, IRegisteredComponent, IComponentRegistry } from "./interfaces/component";
+import { IEntity } from "./interfaces/entity";
 import { Object } from "./object";
 
-export class Component extends Object {
-    private _entity: Entity;
+export class Component extends Object implements IComponent {
+    private _entity: IEntity;
 
     public get entity() { return this._entity; }
 
-    constructor(entity: Entity) {
+    constructor(entity: IEntity) {
         super();
         this._entity = entity;
     }
 }
 
-type ComponentCtr<T extends Component> = {
-    new (entity: Entity): T;
-    name: string;
-}
-
-export interface IComponentPool<T extends Component> {
-    add(entity: Entity, ctr: T): T;
-    removeAll(entity: Entity): void;
-    remove(entity: Entity, component: T): void;
-    get(entity: Entity): T | undefined;
-    getAll(entity: Entity): T[];
-    has(entity: Entity): boolean;
-    forEach(callback: (component: T) => void): void;
-}
-
-export class ComponentPool<T extends Component> implements IComponentPool<T> {
+export class ComponentPool<T extends IComponent> implements IComponentPool<T> {
     private components: (T | null)[] = [];
     private owners: (number | null)[] = [];
     private freeList: number[] = [];
     private entityToSlots: Map<number, number[]> = new Map();
 
-    public add(entity: Entity, component: T) {
+    public add(entity: IEntity, component: T) {
         let slot: number;
 
         if (this.freeList.length > 0) {
@@ -55,7 +41,7 @@ export class ComponentPool<T extends Component> implements IComponentPool<T> {
         return component;
     }
 
-    public remove(entity: Entity, component: Component) {
+    public remove(entity: IEntity, component: IComponent) {
         const slots = this.entityToSlots.get(entity.id);
         if (!slots || slots.length === 0) return;
 
@@ -67,7 +53,7 @@ export class ComponentPool<T extends Component> implements IComponentPool<T> {
         if (slots.length === 0) this.entityToSlots.delete(entity.id);
     }
 
-    public removeAll(entity: Entity) {
+    public removeAll(entity: IEntity) {
         const slots = this.entityToSlots.get(entity.id);
         if (!slots) return;
 
@@ -79,18 +65,18 @@ export class ComponentPool<T extends Component> implements IComponentPool<T> {
         this.entityToSlots.delete(entity.id);
     }
 
-    public get(entity: Entity): T | undefined {
+    public get(entity: IEntity): T | undefined {
         if (!this.has(entity) || this.entityToSlots.get(entity.id)!.length === 0) return void 0;
         return this.components[this.entityToSlots.get(entity.id)![0]]!;
     }
 
-     public getAll(entity: Entity): T[] {
+     public getAll(entity: IEntity): T[] {
         if (!this.has(entity)) return [];
         return this.entityToSlots.get(entity.id)!
             .map((index) => this.components[index]!);
     }
 
-    public has(entity: Entity): boolean {
+    public has(entity: IEntity): boolean {
         return this.entityToSlots.has(entity.id);
     }
 
@@ -101,19 +87,12 @@ export class ComponentPool<T extends Component> implements IComponentPool<T> {
     }
 }
 
-export interface IRegisteredComponent<T extends Component> {
-    name: string;
-    className: string;
-    ctr: ComponentCtr<T>;
-    pool: ComponentPool<T>;
-}
-
-export class ComponentRegistry {
+export class ComponentRegistry implements IComponentRegistry {
 
     private ctrToComponent: Map<ComponentCtr<any>, IRegisteredComponent<any>> = new Map();
     private nameToCtr: Map<string, ComponentCtr<any>> = new Map();
 
-    public register<T extends Component>(ctr: ComponentCtr<T>, name: string = ctr.name) {
+    public register<T extends IComponent>(ctr: ComponentCtr<T>, name: string = ctr.name) {
         this.ctrToComponent.set(ctr, {
             name,
             className: ctr.name,
@@ -123,11 +102,11 @@ export class ComponentRegistry {
         this.nameToCtr.set(name, ctr);
     }
 
-    private getReg<T extends Component>(ctr: ComponentCtr<T>) {
+    private getReg<T extends IComponent>(ctr: ComponentCtr<T>) {
         return this.ctrToComponent.get(ctr)!;
     }
 
-    private getRegByClass<T extends Component>(cls: T) {
+    private getRegByClass<T extends IComponent>(cls: T) {
         return this.ctrToComponent.get(cls.constructor as ComponentCtr<any>)!;
     }
 
@@ -135,32 +114,32 @@ export class ComponentRegistry {
         return this.ctrToComponent.get(this.nameToCtr.get(name)!)!;
     }
 
-    public add<T extends Component>(entity: Entity, ctr: ComponentCtr<T>): T {
+    public add<T extends IComponent>(entity: IEntity, ctr: ComponentCtr<T>): T {
         const registered = this.getReg(ctr);
         return registered.pool.add(entity, new registered.ctr(entity));
     }
 
-    public addByName(entity: Entity, name: string): Component {
+    public addByName(entity: IEntity, name: string): Component {
         const registered = this.getRegByName(name);
         return registered.pool.add(entity, new registered.ctr(entity));
     }
 
-    public remove<T extends Component>(entity: Entity, component: T) {
+    public remove<T extends IComponent>(entity: IEntity, component: T) {
         const registered = this.getRegByClass(component);
         return registered.pool.remove(entity, component);
     }
 
-    public removeAll<T extends Component>(entity: Entity, ctr: ComponentCtr<T>) {
+    public removeAll<T extends IComponent>(entity: IEntity, ctr: ComponentCtr<T>) {
         const registered = this.getReg(ctr);
         return registered.pool.removeAll(entity);
     }
 
-    public removeAllByName(entity: Entity, name: string) {
+    public removeAllByName(entity: IEntity, name: string) {
         const registered = this.getRegByName(name);
         return registered.pool.removeAll(entity);
     }
 
-    public forEach<T extends Component>(ctr: ComponentCtr<T>, cb: (comp: T) => void) {
+    public forEach<T extends IComponent>(ctr: ComponentCtr<T>, cb: (comp: T) => void) {
         const registered = this.getReg(ctr);
         (registered.pool as ComponentPool<T>).forEach(cb);
     }
@@ -170,12 +149,12 @@ export class ComponentRegistry {
         registered.pool.forEach(cb);
     }
 
-    public get<T extends Component>(entity: Entity, ctr: ComponentCtr<T>) {
+    public get<T extends IComponent>(entity: IEntity, ctr: ComponentCtr<T>) {
         const registered = this.getReg(ctr);
         return registered.pool.get(entity);
     }
 
-    public getByName(entity: Entity, name: string) {
+    public getByName(entity: IEntity, name: string) {
         const registered = this.getRegByName(name);
         return registered.pool.get(entity);
     }
