@@ -2,34 +2,56 @@ import { Transform } from "../common/components/transform";
 import { ITransform } from "../core/transform";
 import { ComponentCtr, IComponent, IComponentRegistry } from "./interfaces/component";
 import { IEntity } from "./interfaces/entity";
-import { Object } from "./object";
+import { Object } from "../core/object";
+import { IScene } from "../core/interfaces/scene";
+import { EntityEvents } from "../core/events";
 
 export class Entity extends Object implements IEntity {
 
     public children: Entity[] = [];
     public name: string = "";
 
-    private registry: IComponentRegistry;
+    private _scene: IScene;
+    public get scene() { return this._scene; }
 
     public get transform(): ITransform {
-        return this.registry.get(this, Transform)!;
+        return this.scene.components.get(this, Transform)!;
     }
 
-    constructor(name = "", registry: IComponentRegistry) {
-        super();
-        this.registry = registry;
+    constructor(name = "", scene: IScene, id?: number) {
+        super(id);
+        this._scene = scene;
         this.name = name;
     }
 
-    addComponent<T extends IComponent>(ctr: ComponentCtr<T>) {
-        return this.registry.add(this, ctr);
+    addComponent<T extends IComponent>(ctr: ComponentCtr<T>): T {
+        const component = this.scene.components.add(this, ctr);
+        this.scene.game.entityEvents.emit({
+            type: EntityEvents.AddComponent,
+            entity: this,
+            component: component,
+        });
+        return component;
     }
 
     removeComponent(component: IComponent) {
-        this.registry.remove(this, component);
+        this.scene.game.entityEvents.emit({
+            type: EntityEvents.RemoveComponent,
+            entity: this,
+            component: component,
+        });
+        this.scene.components.remove(this, component);
     }
 
     removeComponents<T extends IComponent>(ctr: ComponentCtr<T>) {
-        this.registry.removeAll(this, ctr);
+        this.scene.components.removeAll(this, ctr);
+    }
+
+    getComponents(): IComponent[] {
+        return this.scene.components.getAll(this);
+    }
+
+    getComponent<T extends IComponent>(ctr: ComponentCtr<T>): T | undefined {
+        return this.scene.components.get(this, ctr);
     }
 }

@@ -4,31 +4,45 @@
         <meta charset="utf-8" />
         <title>A demo - you better change me</title>
   </head>
-  <header>
-        <h1>HGTS - <span id='fps'></span></h1>
-  </header>
-  <body style="margin: 10px">
-      <div id='container' style="border: 1px solid black;"></div>
+  <body>
+      <div class="header">
+            <sl-dropdown>
+                  <sl-button slot="trigger" caret>File</sl-button>
+                  <sl-menu id="file_menu">
+                        <sl-menu-item id="new_scene">New Scene</sl-menu-item>
+                        <sl-menu-item id="load_scene">Load Scene</sl-menu-item>
+                        <sl-menu-item id="save_scene">Save Scene</sl-menu-item>
+                        <sl-menu-item id="save_scene_as">Save Scene As</sl-menu-item>
+                  </sl-menu>
+            </sl-dropdown>
+      </div>
+      <div class="main" id="main"></div>
   </body>
   <footer>
+      <link rel="stylesheet"
+  href="https://unpkg.com/golden-layout/dist/css/goldenlayout-base.css" />
+<link rel="stylesheet"
+  href="https://unpkg.com/golden-layout/dist/css/themes/goldenlayout-light-theme.css" />
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" />
         <script src="./main.ts" type="module"></script>
-        <style src='./index.css'></style>
+        <link rel="stylesheet" href='./index.css'></link>
         <style>
+
+            .header {
+                  height: 40px;
+            }
+
+            .main {     /* allow it to grow */
+                  width: 100%;
+                  height: calc(100% - 40px);      /* fill parent's height */
+            }
 
             html, body {
                   margin: 0;
                   padding: 0;
-                  height: 100%;
-            }
-
-            body {
-                  display: flex;
-                  flex-direction: column;
-            }
-
-            #container {
-                  flex: 1;
                   width: 100%;
+                  height: 100%;
             }
         </style>
   </footer>

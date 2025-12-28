@@ -1,47 +1,53 @@
 import {RandomCubes} from "../dist/demos/randomCubes";
+// import {Editor} from "../dist/demos/editor";
+import { Editor } from "../dist/editor/editor"
+import { Clock } from "three";
 
+window.onload = async () => {
 
-window.onload = () => {
+    const container = document.getElementById('main')! as HTMLDivElement;
+    
+    const scene = new Editor(container);
+    scene.initialize();
 
-    const container = document.getElementById('container')! as HTMLDivElement;
-    const fps = document.getElementById('fps')! as HTMLSpanElement;
+    // @ts-ignore
+    // window.scene = scene;
 
-    const scene = new RandomCubes();
-    scene.resize(container.clientWidth, container.clientHeight);
-    container.appendChild(scene.renderer.domElement);
+    // container.appendChild(scene.renderer.domElement);
 
-    const gl = scene.renderer.getContext();
+    // const gl = scene.renderer.getContext();
 
-    // try to get the debug extension
-    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+    // // try to get the debug extension
+    // const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
 
-    if (debugInfo) {
-        const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
-        const rendererName = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+    // window.onresize = () => {
+    //     scene.resize(container.clientWidth, container.clientHeight);
+    // }
 
-        console.log('GPU Vendor:', vendor);
-        console.log('GPU Renderer:', rendererName);
-    } else {
-        console.log('WEBGL_debug_renderer_info not supported');
-    }
+    // if (debugInfo) {
+    //     const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+    //     const rendererName = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
 
-    let lastTime = 0;
+    //     console.log('GPU Vendor:', vendor);
+    //     console.log('GPU Renderer:', rendererName);
+    // } else {
+    //     console.log('WEBGL_debug_renderer_info not supported');
+    // }
 
-    scene.start();
+    // let lastTime = 0;
 
-    function animate(time: number) {
+    // scene.start();
 
-        const dt = (time - lastTime) / 1000;
-        lastTime = time;
+    // scene.resize(container.clientWidth, container.clientHeight);
 
-        scene.update(dt);
+    // const clock = new Clock();
 
-        fps.innerText = 1 / dt;
+    // function animate(time: number) {
+        
+    //     scene.update(clock.getDelta());
 
+    //     requestAnimationFrame(animate);
+    // }
 
-
-        requestAnimationFrame(animate);
-    }
-
-    requestAnimationFrame(animate);
+    // requestAnimationFrame(animate);
 }

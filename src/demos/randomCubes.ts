@@ -7,6 +7,7 @@ import { IEntity } from "../ecs/interfaces/entity";
 import { Renderer } from "../common/systems/renderer";
 import { System } from "../ecs/system";
 import { PerspectiveCamera } from "../common/components/camera";
+import { IGame } from "../core/interfaces/game";
 
 class RandomMove extends Component {
     direction: Vector3;
@@ -49,14 +50,14 @@ class CubeSystem extends System {
 
 export class RandomCubes extends Scene {
 
-    constructor() {
-        super();
+    constructor(game: IGame) {
+        super(game);
         this.components.register(RandomMove);
         this.addSystem(Renderer);
         this.addSystem(CubeSystem);
     }
 
-    public onStart(): void {
+    public onActivate(): void {
 
         const camera = this.addEntity("Camera").addComponent(PerspectiveCamera);
         camera.camera.fov = 75;

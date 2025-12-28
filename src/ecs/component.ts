@@ -1,8 +1,13 @@
 import { IComponent, IComponentPool, ComponentCtr, IRegisteredComponent, IComponentRegistry } from "./interfaces/component";
 import { IEntity } from "./interfaces/entity";
-import { Object } from "./object";
+import { Object } from "../core/object";
+import { Field } from "../core/reflection";
+import { EntityEvents } from "../core/events";
 
 export class Component extends Object implements IComponent {
+
+    private _fields: Map<string, Field> = new Map();
+
     private _entity: IEntity;
 
     public get entity() { return this._entity; }
@@ -11,6 +16,24 @@ export class Component extends Object implements IComponent {
         super();
         this._entity = entity;
     }
+
+    notifyUpdate() {
+        this.entity.scene.game.entityEvents.emit({
+            type: EntityEvents.UpdateComponent,
+            entity: this.entity,
+            component: this,
+        });
+    }
+
+    setParam(name: string, field: Field): void {
+        this._fields.set(name, field);
+    }
+
+    getParams(): Map<string, Field> {
+        return this._fields;
+    }
+
+    
 }
 
 export class ComponentPool<T extends IComponent> implements IComponentPool<T> {
@@ -18,6 +41,13 @@ export class ComponentPool<T extends IComponent> implements IComponentPool<T> {
     private owners: (number | null)[] = [];
     private freeList: number[] = [];
     private entityToSlots: Map<number, number[]> = new Map();
+
+    public clear() {
+        this.components = [];
+        this.owners = [];
+        this.freeList = [];
+        this.entityToSlots = new Map();
+    }
 
     public add(entity: IEntity, component: T) {
         let slot: number;
@@ -102,6 +132,14 @@ export class ComponentRegistry implements IComponentRegistry {
         this.nameToCtr.set(name, ctr);
     }
 
+    public getComponents(): IRegisteredComponent<any>[] {
+        const components = [];
+        for (const [ctr, component] of this.ctrToComponent) {
+            components.push(component);
+        }
+        return components;
+    }
+
     private getReg<T extends IComponent>(ctr: ComponentCtr<T>) {
         return this.ctrToComponent.get(ctr)!;
     }
@@ -112,6 +150,12 @@ export class ComponentRegistry implements IComponentRegistry {
 
     private getRegByName(name: string) {
         return this.ctrToComponent.get(this.nameToCtr.get(name)!)!;
+    }
+
+    public clear() {
+        for (const [ctr, component] of this.ctrToComponent) {
+            component.pool.clear();
+        }
     }
 
     public add<T extends IComponent>(entity: IEntity, ctr: ComponentCtr<T>): T {
@@ -152,6 +196,17 @@ export class ComponentRegistry implements IComponentRegistry {
     public get<T extends IComponent>(entity: IEntity, ctr: ComponentCtr<T>) {
         const registered = this.getReg(ctr);
         return registered.pool.get(entity);
+    }
+
+    public getAll(entity: IEntity) {
+        const components = [];
+        for (const type of this.ctrToComponent.keys()) {
+            const component = this.get(entity, type);
+            if (component) {
+                components.push(component);
+            }
+        }
+        return components;
     }
 
     public getByName(entity: IEntity, name: string) {

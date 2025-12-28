@@ -1,0 +1,164 @@
+{
+  "entities": [
+    {
+      "id": 1,
+      "name": "Camera",
+      "children": [],
+      "components": [
+        {
+          "id": 12,
+          "name": "OrthographicCamera",
+          "params": {
+            "left": -416,
+            "right": 416,
+            "bottom": -311,
+            "top": 311,
+            "near": 0.01,
+            "far": 1000
+          }
+        },
+        {
+          "id": 2,
+          "name": "Transform",
+          "params": {
+            "position": [
+              0,
+              0,
+              100
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "PlayerPaddle",
+      "children": [],
+      "components": [
+        {
+          "id": 13,
+          "name": "MeshPrimitive",
+          "params": {
+            "type": "Cube",
+            "width": 20,
+            "height": 100,
+            "depth": 0,
+            "radius": 1,
+            "color": "black"
+          }
+        },
+        {
+          "id": 6,
+          "name": "Transform",
+          "params": {
+            "position": [
+              -300,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "name": "ComputerPaddle",
+      "children": [],
+      "components": [
+        {
+          "id": 16,
+          "name": "MeshPrimitive",
+          "params": {
+            "type": "Cube",
+            "width": 20,
+            "height": 100,
+            "depth": 1,
+            "radius": 1,
+            "color": "black"
+          }
+        },
+        {
+          "id": 15,
+          "name": "Transform",
+          "params": {
+            "position": [
+              300,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "name": "Ball",
+      "children": [],
+      "components": [
+        {
+          "id": 19,
+          "name": "MeshPrimitive",
+          "params": {
+            "type": "Sphere",
+            "width": 1,
+            "height": 1,
+            "depth": 1,
+            "radius": 10,
+            "color": "black"
+          }
+        },
+        {
+          "id": 18,
+          "name": "Transform",
+          "params": {
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
