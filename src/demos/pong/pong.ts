@@ -30,4 +30,7 @@ export class Pong implements IManifest {
         Behavior,
         MeshPrimitive,
     ];
+    assets = {
+        fonts: [],
+    };
 }

@@ -2,42 +2,70 @@ import { Clock, WebGLRenderer } from "three";
 import { IScene, SceneCtr } from "./interfaces/scene";
 import { IGame } from "./interfaces/game";
 import { Input } from "./input";
-import EventListenerPool, { EntityEvent, SceneEvent } from "./events";
+import EventListenerPool, { EntityEvent, SceneEvent, SceneEvents } from "./events";
 import { IManifest } from "./interfaces/manifest";
 import { ScriptRegistry } from "./script";
+import { Assets } from "./assets";
 
 export class Game implements IGame {
-    private scenes: Map<string, IScene> = new Map();
+    private _scenes: Map<string, IScene> = new Map();
     private activeScene: string | null = null;
     
-    private _input: Input;
-    private _renderer = new WebGLRenderer();
+    private _input: Input | null = null;
+    private _renderer: WebGLRenderer | null = null;
     private _clock = new Clock();
 
-    public get renderer() { return this._renderer; }
+    public get renderer() { 
+        if (!this._renderer) {
+            throw new Error("Running in headless mode");
+        }
+        return this._renderer; 
+    }
     public get clock() { return this._clock; }
-    public get input() { return this._input; }
+    public get input() { 
+        if (!this._input) {
+            throw new Error("Running in headless mode");
+        }
+        return this._input;
+    }
 
-    private _entityEvents: EventListenerPool<EntityEvent> = new EventListenerPool<EntityEvent>();
+    public get scenes() { return this._scenes; }
+
     private _sceneEvents: EventListenerPool<SceneEvent> = new EventListenerPool<SceneEvent>();
-    public get entityEvents() { return this._entityEvents; }
     public get sceneEvents() { return this._sceneEvents; }
 
     public get currentScene() { return this.activeScene === null ? null : this.scenes.get(this.activeScene)!;}
 
-    constructor(manifest: IManifest) {
-        this._input = new Input(this.renderer.domElement);
+    constructor(manifest: IManifest, headless: boolean = false) {
 
-        const gl = this.renderer.getContext();
+        if (headless) {
+            console.log("Running in headless mode");
+        } else {
+            this._renderer = new WebGLRenderer();
+            this._input = new Input(this.renderer.domElement);
+            const gl = this.renderer.getContext();
 
-        // try to get the debug extension
-        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info')!;
+            // try to get the debug extension
+            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info')!;
 
-        const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
-        const rendererName = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+            const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+            const rendererName = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
 
-        console.log('GPU Vendor:', vendor);
-        console.log('GPU Renderer:', rendererName);
+            console.log('GPU Vendor:', vendor);
+            console.log('GPU Renderer:', rendererName);
+        }
+
+        this.loadManifest(manifest);
+    }
+
+    public loadManifest(manifest: IManifest) {
+        if (manifest.assets.fonts) {
+            for (const font of manifest.assets.fonts) {
+                Assets.loadFont(font).then(() => {
+                    console.log(`Loaded font: ${font.name}`);
+                });
+            }
+        }
 
         for (const script of manifest.scripts) {
             ScriptRegistry.register(script);
@@ -75,17 +103,23 @@ export class Game implements IGame {
         this.activeScene = name;
         if (this.activeScene !== null) {
             this.scenes.get(this.activeScene)!.onActivate();
+            this.sceneEvents.emit({type: SceneEvents.New});
         }
     }
 
-    private tick() {
+    public tick(headless: boolean = false) {
 
-        this.input.update();
+        if (!headless) {
+            this.input.update();
+        }
 
         if (this.activeScene !== null) {
             this.scenes.get(this.activeScene)!.update(this.clock.getDelta());
         }
-        requestAnimationFrame((t) => {this.tick()});
+
+        if (!headless) {
+            requestAnimationFrame((t) => {this.tick()});
+        }
     }
 
     public run() {

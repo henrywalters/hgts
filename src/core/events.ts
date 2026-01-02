@@ -1,6 +1,6 @@
 import { IComponent } from "../ecs/interfaces/component";
 import { IEntity } from "../ecs/interfaces/entity";
-import { Object } from "./object";
+import { HGObject } from "./object";
 
 export enum EntityEvents {
     Create = 'create',
@@ -28,7 +28,7 @@ export interface SceneEvent {
     type: SceneEvents;
 }
 
-export class EventListener<T> extends Object {
+export class EventListener<T> extends HGObject {
 
     public readonly handler: (payload: T) => void
     public readonly pool: EventListenerPool<T>;

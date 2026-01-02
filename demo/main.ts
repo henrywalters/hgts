@@ -5,6 +5,8 @@ import { Clock } from "three";
 
 window.onload = async () => {
 
+    console.log("ONLOAD");
+
     const container = document.getElementById('main')! as HTMLDivElement;
     
     const scene = new Editor(container);

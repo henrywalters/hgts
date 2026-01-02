@@ -1,4 +1,4 @@
-import { Vector2, Vector3 } from "three";
+import { Color, Vector2, Vector3 } from "three";
 import { IComponent } from "../ecs/interfaces/component";
 
 export enum Types {
@@ -20,6 +20,7 @@ export interface Field {
     defaultValue?: any;
     label?: string;
     enum?: Object;
+    readonly?: boolean;
 }
 
 export interface IParameterizable {
@@ -40,6 +41,8 @@ export function serialize(field: Field, value: any): any {
         return [value.x, value.y, value.z];
     } else if (field.type === Types.Vector2) {
         return [value.x, value.y];
+    } else if (field.type === Types.Color) {
+        return [value.r, value.g, value.b];
     } else {
         return value;
     }
@@ -50,6 +53,8 @@ export function deserialize(field: Field, value: any): any {
         return new Vector3(value[0], value[1], value[2]);
     } else if (field!.type === Types.Vector2) {
         return new Vector2(value[0], value[1]);
+    } else if (field!.type === Types.Color) {
+        return new Color(value[0], value[1], value[2]);
     } else {
         return value;
     }

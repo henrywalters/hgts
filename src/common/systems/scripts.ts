@@ -9,7 +9,7 @@ export class Scripts extends System {
     constructor(scene: IScene) {
         super(scene);
         
-        this.scene.game.entityEvents.listen((e) => {
+        this.scene.entityEvents.listen((e) => {
             if (e.type === EntityEvents.AddComponent && e.component instanceof Behavior && e.component.scriptName !== '') {
                 ScriptRegistry.instantiate(e.component.scriptName, e.component);
             }

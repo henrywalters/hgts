@@ -2,11 +2,11 @@ import { Transform } from "../common/components/transform";
 import { ITransform } from "../core/transform";
 import { ComponentCtr, IComponent, IComponentRegistry } from "./interfaces/component";
 import { IEntity } from "./interfaces/entity";
-import { Object } from "../core/object";
+import { HGObject } from "../core/object";
 import { IScene } from "../core/interfaces/scene";
 import { EntityEvents } from "../core/events";
 
-export class Entity extends Object implements IEntity {
+export class Entity extends HGObject implements IEntity {
 
     public children: Entity[] = [];
     public name: string = "";
@@ -26,7 +26,7 @@ export class Entity extends Object implements IEntity {
 
     addComponent<T extends IComponent>(ctr: ComponentCtr<T>): T {
         const component = this.scene.components.add(this, ctr);
-        this.scene.game.entityEvents.emit({
+        this.scene.entityEvents.emit({
             type: EntityEvents.AddComponent,
             entity: this,
             component: component,
@@ -35,7 +35,7 @@ export class Entity extends Object implements IEntity {
     }
 
     removeComponent(component: IComponent) {
-        this.scene.game.entityEvents.emit({
+        this.scene.entityEvents.emit({
             type: EntityEvents.RemoveComponent,
             entity: this,
             component: component,

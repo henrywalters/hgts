@@ -1,4 +1,4 @@
-export class Object {
+export class HGObject {
     private static currentId = 0;
 
     private _id: number;
@@ -7,10 +7,10 @@ export class Object {
     constructor(id?: number) {
         if (id) {
             this._id = id;
-            Object.currentId = Math.max(id, Object.currentId);
+            HGObject.currentId = Math.max(id, HGObject.currentId);
         } else {
-            this._id = Object.currentId;
+            this._id = HGObject.currentId;
         }
-        Object.currentId += 1;
+        HGObject.currentId += 1;
     }
 }

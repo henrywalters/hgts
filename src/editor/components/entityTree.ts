@@ -8,6 +8,7 @@ import { EditorComponent } from "./editorComponent";
 import { IEditor } from "../interfaces/editor";
 import { EntityEvents, SceneEvents } from "../../core/events";
 import { IEntity } from "../../ecs/interfaces/entity";
+import { Transform } from "../../common/components/transform";
 
 export class EntityTree extends EditorComponent implements IEditorComponent {
 
@@ -19,17 +20,21 @@ export class EntityTree extends EditorComponent implements IEditorComponent {
         super(editor);
         this.tree = document.createElement('div');
 
-        this.editor.game.entityEvents.listen((e) => {
-            if (e.type === EntityEvents.Change) {
-                const el = document.getElementById(`Entity_${e.entity.id}`);
-                if (el) {
-                    const entity = e.entity;
-                    if (entity) {
-                        el.innerText = entity.name;
+        for (const [name, scene] of this.editor.game.scenes) {
+            scene.entityEvents.listen((e) => {
+                if (e.type === EntityEvents.Create || e.type === EntityEvents.Remove) {
+                    this.renderTree();
+                } else if (e.type === EntityEvents.Change) {
+                    const el = document.getElementById(`Entity_${e.entity.id}`);
+                    if (el) {
+                        const entity = e.entity;
+                        if (entity) {
+                            el.innerText = entity.name;
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
 
         this.editor.game.sceneEvents.listen((e) => {
             if (e.type === SceneEvents.New) {
@@ -53,7 +58,7 @@ export class EntityTree extends EditorComponent implements IEditorComponent {
         root.addEventListener('sl-selection-change', (e) => {
             // @ts-ignore
             const el = e.detail.selection[0] as HTMLElement;
-            this.editor.game.entityEvents.emit({
+            this.editor.game.currentScene!.entityEvents.emit({
                 type: EntityEvents.Select,
                 entity: this.editor.game.currentScene!.getEntity(parseInt(el.getAttribute('entity-id') as string)) as IEntity,
             })
@@ -74,7 +79,8 @@ export class EntityTree extends EditorComponent implements IEditorComponent {
         button.addEventListener('click', (e) => {
             if (this.editor.game.currentScene) {
                 const entity = this.editor.game.currentScene.addEntity(`Entity_${this.index}`);
-                this.editor.game.entityEvents.emit({
+                entity.addComponent(Transform);
+                this.editor.game.currentScene!.entityEvents.emit({
                     type: EntityEvents.Create,
                     entity,
                 })

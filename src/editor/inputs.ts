@@ -1,4 +1,4 @@
-import { Vector2, Vector3 } from "three";
+import { Color, Vector2, Vector3 } from "three";
 import { Field, Types } from "../core/reflection";
 import { ScriptRegistry } from "../core/script";
 import { IScene } from "../core/interfaces/scene";
@@ -109,7 +109,7 @@ export function makeVector3(label: string, value: Vector3, onChange: (value: Vec
     return root;
 }
 
-export function makeColorInput(label: string, color: string, onChange: (value: Vector3) => void) {
+export function makeColorInput(label: string, color: Color, onChange: (value: Vector3) => void) {
     const root = document.createElement('div');
 
     const labelEl = document.createElement('h4');
@@ -118,11 +118,11 @@ export function makeColorInput(label: string, color: string, onChange: (value: V
     const input = document.createElement('sl-color-picker');
 
     // @ts-ignore
-    input.value = color;
+    input.value = color.getHex();
 
     input.addEventListener('sl-input', (e) => {
         // @ts-ignore
-        onChange(input.value);
+        onChange(new Color(input.value));
     })
 
     root.appendChild(labelEl);

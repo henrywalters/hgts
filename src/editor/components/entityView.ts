@@ -19,12 +19,14 @@ export class EntityView extends EditorComponent implements IEditorComponent {
 
         this.root = document.createElement('div');
 
-        this.editor.game.entityEvents.listen((e) => {
-            if (e.type === EntityEvents.Select || (e.type === EntityEvents.Change && this.entity?.id === e.entity.id)) {
-                this.entity = e.entity;
-                this.renderEntity();
-            }
-        })
+        for (const [name, scene] of this.editor.game.scenes) {
+            scene.entityEvents.listen((e) => {
+                if (e.type === EntityEvents.Select || (e.type === EntityEvents.Change && this.entity?.id === e.entity.id)) {
+                    this.entity = e.entity;
+                    this.renderEntity();
+                }
+            });
+        }
 
         this.editor.game.sceneEvents.listen((e) => {
             if (e.type === SceneEvents.New) {
@@ -63,6 +65,17 @@ export class EntityView extends EditorComponent implements IEditorComponent {
 
         if (!this.entity) return;
 
+        const removeBtn = document.createElement('sl-button');
+        removeBtn.innerText = 'Remove Entity';
+        
+        removeBtn.addEventListener('click', (e) => {
+            this.editor.game.currentScene!.removeEntity(this.entity!.id);
+            this.entity = null;
+            this.renderEntity();
+        });
+
+        this.root.appendChild(removeBtn);
+
         const label = document.createElement('h3');
         label.innerText = 'Entity Name';
 
@@ -74,7 +87,7 @@ export class EntityView extends EditorComponent implements IEditorComponent {
         });
 
         nameInput.addEventListener('blur', () => {
-            this.editor.game.entityEvents.emit({
+            this.editor.game.currentScene!.entityEvents.emit({
                 type: EntityEvents.Change,
                 entity: this.entity!,
             })
@@ -112,7 +125,7 @@ export class EntityView extends EditorComponent implements IEditorComponent {
 
             for (const [key, field] of component.getParams()) {
                 div.appendChild(makeInput(this.editor.game.currentScene as IScene, component, key, field, (value) => {
-                    this.editor.game.entityEvents.emit({
+                    this.editor.game.currentScene!.entityEvents.emit({
                         type: EntityEvents.UpdateComponent,
                         entity: this.entity!,
                         component: component,
@@ -125,7 +138,7 @@ export class EntityView extends EditorComponent implements IEditorComponent {
                     if (script) {
                         for (const [scriptKey, scriptField] of script.getParams()) {
                             div.appendChild(makeInput(this.editor.game.currentScene as IScene, script, scriptKey, scriptField, (value) => {
-                                this.editor.game.entityEvents.emit({
+                                this.editor.game.currentScene!.entityEvents.emit({
                                     type: EntityEvents.UpdateComponent,
                                     entity: this.entity!,
                                     component,

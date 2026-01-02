@@ -1,11 +1,36 @@
 import { Ray, Vector2, Vector3 } from "three";
 
-export interface AABB {
+export interface IAABB {
     min: Vector2;
     max: Vector2;
 }
 
-export function sweepAABB(p0: Vector2, p1: Vector2, aabb: AABB): number | null {
+export class AABB implements IAABB {
+    min: Vector2;
+    max: Vector2;
+
+    constructor(min: Vector2, max: Vector2) {
+        this.min = min;
+        this.max = max;
+    }
+
+    expand(point: Vector2) {
+        for (const axis of ["x", "y"] as const) {
+            if (point[axis] < this.min[axis]) {
+                this.min[axis] = point[axis];
+            }
+            if (point[axis] > this.max[axis]) {
+                this.max[axis] = point[axis];
+            }
+        }
+    }
+
+    contains(point: Vector2): boolean {
+        return point.x <= this.max.x && point.x >= this.min.x && point.y <= this.max.y && point.y >= this.min.y;
+    }
+}
+
+export function sweepAABB(p0: Vector2, p1: Vector2, aabb: IAABB): number | null {
     const delta = p1.clone().sub(p0);
 
     let tMin = 0;

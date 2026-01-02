@@ -1,0 +1,21 @@
+{
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "ESNext",           // Changed from CommonJS
+		"moduleResolution": "node", // Changed from node
+		"lib": ["ES2022", "DOM"],            // Removed DOM
+		"esModuleInterop": true,
+		"strict": true,
+		"skipLibCheck": true,  // Add this
+		"outDir": "./dist",
+		"allowImportingTsExtensions": true,
+		"noEmit": true
+	},
+	"include": [
+		"src/*"
+	],
+	"exclude": [
+		"dist"
+	]
+}

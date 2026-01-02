@@ -1,0 +1,139 @@
+{
+  "entities": [
+    {
+      "id": 69,
+      "name": "Camera",
+      "children": [],
+      "components": [
+        {
+          "id": 70,
+          "name": "Transform",
+          "params": {
+            "position": [
+              0,
+              0,
+              10
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": 71,
+          "name": "OrthographicCamera",
+          "params": {
+            "left": -320,
+            "right": 320,
+            "bottom": -240,
+            "top": 240,
+            "near": 0.01,
+            "far": 1000
+          }
+        }
+      ]
+    },
+    {
+      "id": 78,
+      "name": "Score",
+      "children": [],
+      "components": [
+        {
+          "id": 79,
+          "name": "Transform",
+          "params": {
+            "position": [
+              -15,
+              212,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": 80,
+          "name": "TextMesh",
+          "params": {
+            "text": "0 | 0",
+            "font": "8bit",
+            "size": 24,
+            "depth": 1,
+            "color": [
+              1,
+              1,
+              1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 81,
+      "name": "Status",
+      "children": [],
+      "components": [
+        {
+          "id": 82,
+          "name": "Transform",
+          "params": {
+            "position": [
+              -309,
+              -229,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": 83,
+          "name": "TextMesh",
+          "params": {
+            "text": "PRESS SPACE TO SERVE",
+            "font": "8bit",
+            "size": 16,
+            "depth": 1,
+            "color": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "id": 104,
+          "name": "Behavior",
+          "params": {
+            "scriptName": "RuntimeText",
+            "status": 81,
+            "score": 78
+          }
+        }
+      ]
+    }
+  ]
+}

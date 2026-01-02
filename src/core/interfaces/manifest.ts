@@ -1,5 +1,6 @@
 import { ComponentCtr } from "../../ecs/interfaces/component";
 import { SystemCtr } from "../../ecs/interfaces/system";
+import { IAssetsData } from "./assets";
 import { SceneCtr, SceneData } from "./scene";
 import { ScriptCtr } from "./script";
 
@@ -13,5 +14,6 @@ export interface IManifest {
     components: ComponentCtr<any>[];
     scripts: ScriptCtr<any>[];
     scenes: {[key: string]: SceneManifest};
+    assets: IAssetsData;
     startScene: string;
 }

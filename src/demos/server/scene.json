@@ -1,0 +1,44 @@
+{
+  "entities": [
+    {
+      "id": 5,
+      "name": "Camera",
+      "children": [],
+      "components": [
+        {
+          "id": 6,
+          "name": "Transform",
+          "params": {
+            "position": [
+              0,
+              0,
+              5
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": 7,
+          "name": "OrthographicCamera",
+          "params": {
+            "left": -351.5,
+            "right": 351.5,
+            "bottom": -311,
+            "top": 311,
+            "near": 0.01,
+            "far": 1000
+          }
+        }
+      ]
+    }
+  ]
+}

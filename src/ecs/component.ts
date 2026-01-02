@@ -1,10 +1,10 @@
 import { IComponent, IComponentPool, ComponentCtr, IRegisteredComponent, IComponentRegistry } from "./interfaces/component";
 import { IEntity } from "./interfaces/entity";
-import { Object } from "../core/object";
+import { HGObject } from "../core/object";
 import { Field } from "../core/reflection";
 import { EntityEvents } from "../core/events";
 
-export class Component extends Object implements IComponent {
+export class Component extends HGObject implements IComponent {
 
     private _fields: Map<string, Field> = new Map();
 
@@ -18,7 +18,7 @@ export class Component extends Object implements IComponent {
     }
 
     notifyUpdate() {
-        this.entity.scene.game.entityEvents.emit({
+        this.entity.scene.entityEvents.emit({
             type: EntityEvents.UpdateComponent,
             entity: this.entity,
             component: this,

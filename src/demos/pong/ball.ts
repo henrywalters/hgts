@@ -2,7 +2,7 @@ import { Box3, Ray, Vector2, Vector3 } from "three";
 import { MeshPrimitive } from "../../common/components/mesh";
 import { Param, Types } from "../../core/reflection";
 import { Script } from "../../core/script";
-import { AABB, sweepAABB } from "../../utils/math";
+import { IAABB, sweepAABB } from "../../utils/math";
 import { IEntity } from "../../ecs/interfaces/entity";
 
 export class Ball extends Script {
@@ -59,27 +59,27 @@ export class Ball extends Script {
         dir.copy(this.direction);
         dir.multiplyScalar(this.speed * dt);
 
-        const left: AABB = {
+        const left: IAABB = {
             min: new Vector2(-size.x / 2 - mesh.radius, -size.y / 2),
             max: new Vector2(-size.x / 2 + mesh.radius, size.y / 2)
         };
 
-        const right: AABB = {
+        const right: IAABB = {
             min: new Vector2(size.x / 2 - mesh.radius, -size.y / 2),
             max: new Vector2(size.x / 2 + mesh.radius, size.y / 2)
         };
 
-        const top: AABB = {
+        const top: IAABB = {
             min: new Vector2(-size.x / 2, -size.y / 2 - mesh.radius),
             max: new Vector2(size.x / 2, -size.y / 2 + mesh.radius)
         };
 
-        const bot: AABB = {
+        const bot: IAABB = {
             min: new Vector2(-size.x / 2, size.y / 2 - mesh.radius),
             max: new Vector2(size.x / 2, size.y / 2 + mesh.radius)
         };
 
-        const getRect = (entity: IEntity, rect: MeshPrimitive): AABB => {
+        const getRect = (entity: IEntity, rect: MeshPrimitive): IAABB => {
             return {
                 min: new Vector2(entity.transform.position.x - rect.width / 2 - rect.radius, entity.transform.position.y - rect.height / 2 - rect.radius),
                 max: new Vector2(entity.transform.position.x + rect.width / 2 + rect.radius, entity.transform.position.y + rect.height / 2 + rect.radius),

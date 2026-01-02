@@ -8,7 +8,7 @@ import { Transform } from "../common/components/transform";
 import { IGame } from "./interfaces/game";
 import { ComponentData } from "../ecs/interfaces/component";
 import { deserialize, serialize, Types } from "./reflection";
-import { EntityEvents } from "./events";
+import EventListenerPool, { EntityEvent, EntityEvents } from "./events";
 import { Script, ScriptRegistry } from "./script";
 import { Behavior } from "../common/components/behavior";
 import { IScript } from "./interfaces/script";
@@ -22,6 +22,9 @@ export class Scene implements IScene {
     private _game: IGame;
 
     private _scene: RenderScene = new RenderScene();
+
+    private _entityEvents: EventListenerPool<EntityEvent> = new EventListenerPool<EntityEvent>();
+    public get entityEvents() { return this._entityEvents; }
 
     public get scene() { return this._scene; }
 
@@ -109,7 +112,7 @@ export class Scene implements IScene {
                     }
                 }
 
-                this.game.entityEvents.emit({
+                this.entityEvents.emit({
                     type: EntityEvents.AddComponent,
                     entity: entity,
                     component: component,
@@ -129,6 +132,17 @@ export class Scene implements IScene {
     public onActivate(): void {}
 
     public onDeactivate(): void {}
+
+    removeEntity(id: number): void {
+        const index = this.entities.findIndex((value) => value.id === id);
+        if (index >= 0) {
+            this.entityEvents.emit({
+                type: EntityEvents.Remove,
+                entity: this.entities[index],
+            })
+            this.entities.splice(index, 1);
+        }
+    }
 
     public addEntity(name: string = "", id?: number) {
         const entity = new Entity(name, this, id);

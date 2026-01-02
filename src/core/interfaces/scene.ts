@@ -3,6 +3,7 @@ import { IComponentRegistry } from "../../ecs/interfaces/component";
 import { EntityData, IEntity } from "../../ecs/interfaces/entity";
 import { ISystem, SystemCtr } from "../../ecs/interfaces/system";
 import { IGame } from "./game";
+import EventListenerPool, { EntityEvent } from "../events";
 
 export interface SceneData {
     entities: EntityData[];
@@ -16,6 +17,8 @@ export interface IScene {
     game: IGame;
     scene: Scene;
 
+    entityEvents: EventListenerPool<EntityEvent>;
+
     clear(): void;
 
     save(): SceneData;
@@ -28,7 +31,8 @@ export interface IScene {
     onUpdate(dt: number): void;
     onResize(width: number, height: number): void;
 
-    addEntity(name?: string): IEntity;
+    removeEntity(id: number): void;
+    addEntity(name?: string, id?: number): IEntity;
     getEntity(id: number): IEntity | null;
     addSystem<T extends ISystem>(ctr: SystemCtr<T>): ISystem;
     initialize(): void;

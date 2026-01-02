@@ -33,7 +33,7 @@ export class CameraControllers extends System {
 
                 controller.entity.transform.position.addScaledVector(localDir, controller.speed * dt);
 
-                this.scene.game.entityEvents.emit({
+                this.scene.entityEvents.emit({
                     type: EntityEvents.Change,
                     entity: controller.entity,
                 });
@@ -46,7 +46,7 @@ export class CameraControllers extends System {
 
                 controller.entity.transform.position.addScaledVector(localDir, controller.speed * dt);
 
-                this.scene.game.entityEvents.emit({
+                this.scene.entityEvents.emit({
                     type: EntityEvents.Change,
                     entity: controller.entity,
                 });

@@ -1,5 +1,5 @@
 import { BoxGeometry, Color, MeshNormalMaterial, Vector3 } from "three";
-import { MeshComponent } from "../common/components/mesh";
+import { MeshComponent, MeshPrimitive, MeshPrimitiveType } from "../common/components/mesh";
 import { Transform } from "../common/components/transform";
 import { Scene } from "../core/scene";
 import { Component } from "../ecs/component";
@@ -70,9 +70,9 @@ export class RandomCubes extends Scene {
         for (let i = 0; i < 1000; i++) {
             const cube = this.addEntity(`Cube_${i}`);
             cube.addComponent(RandomMove);
-            const mesh = cube.addComponent(MeshComponent);
-            mesh.mesh.geometry = new BoxGeometry(1, 1, 1);
-            mesh.mesh.material = new MeshNormalMaterial();
+            const mesh = cube.addComponent(MeshPrimitive);
+            mesh.type = MeshPrimitiveType.Cube;
+            mesh.color = new Color(Math.random(), Math.random(), Math.random());
         }
 
         this.scene.background = new Color(0.2, 0.2, 0.2);
