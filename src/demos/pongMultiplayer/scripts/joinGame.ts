@@ -3,8 +3,6 @@ import { TextMesh } from "../../../common/components/mesh";
 import { Button } from "../../../common/components/ui/button";
 import { Param, Types } from "../../../core/reflection";
 import { Script } from "../../../core/script";
-import { IEntity } from "../../../ecs/interfaces/entity";
-import { PongClient } from "../client";
 import { ClientMessages, JoinGameRequest } from "../messages";
 import { PongMenuState, PongMenuStates } from "../state";
 
@@ -39,7 +37,7 @@ export class JoinGame extends Script {
         
         if (button && button.isJustReleased) {
             PongMenuState.state = PongMenuStates.Waiting;
-            PongClient.socket.send(ClientMessages.write(new JoinGameRequest()));
+            this.game.client.socket.send(ClientMessages.write(new JoinGameRequest()));
         }
 
         const textEntity = this.entity.scene.getEntity(this.text);

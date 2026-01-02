@@ -1,14 +1,13 @@
 import { Vector2 } from "three";
 import { IManifest } from "../../core/interfaces/manifest";
 import { Scene } from "../../core/scene";
-import { Server } from "../../net/server";
 import { ClientMessages, GameOver, GameReady, GameStart, GameUpdate, JoinGameReply, JoinGameRequest, PlayerInput, PlayerReady, PongEvents, ServerMessages } from "./messages";
 import { WebSocket } from "ws";
-import { NetMessage, QueuedMessage } from "../../net/messages";
 import { BALL_SIZE, BALL_SPEED_UP, BALL_START_SPEED, GAME_SIZE, MAX_SCORE, PADDLE_OFFSET, PADDLE_SIZE, PADDLE_SPEED } from "./constants";
 import { clamp } from "three/src/math/MathUtils.js";
 import { IAABB, sweepAABB } from "../../utils/math";
 import { NetEvents } from "../../net/interfaces/net";
+import { QueuedMessage } from "../../net/interfaces/messages";
 
 interface PongPlayer {
     socket: WebSocket;
@@ -41,7 +40,7 @@ export class PongServerRuntime extends Scene {
 
     static PLAYER_ID = 0;
 
-    private server = new Server("localhost", 4200, ServerMessages, ClientMessages);
+    // private server = new Server("localhost", 4200, ServerMessages, ClientMessages);
 
     private games: Set<PongGame> = new Set();
     private socketToGames: Map<WebSocket, PongGame> = new Map();
@@ -195,7 +194,7 @@ export class PongServerRuntime extends Scene {
     private playerJoin(message: QueuedMessage<JoinGameRequest>) {
         const player: PongLobby = {
             id: PongServerRuntime.PLAYER_ID,
-            socket: message.socket,
+            socket: message.socket!,
         };
 
         PongServerRuntime.PLAYER_ID++;
@@ -248,7 +247,7 @@ export class PongServerRuntime extends Scene {
     }
 
     private playerReady(message: QueuedMessage<PlayerReady>) {
-        const game = this.socketToGames.get(message.socket);
+        const game = this.socketToGames.get(message.socket!);
 
         if (!game) {
             console.error("Socket does not point to any games saved");
@@ -274,7 +273,7 @@ export class PongServerRuntime extends Scene {
     }
 
     private playerInput(message: QueuedMessage<PlayerInput>, dt: number) {
-        const game = this.socketToGames.get(message.socket);
+        const game = this.socketToGames.get(message.socket!);
         if (!game) return;
         const playerIdx = game.players[0].socket === message.socket ? 0 : 1;
         
@@ -289,7 +288,7 @@ export class PongServerRuntime extends Scene {
     }
 
     public onUpdate(dt: number): void {
-        this.server.flushEvents((event) => {
+        this.game.server.flushEvents((event) => {
             if (event.type === NetEvents.Disconnected) {
                 if (this.socketToGames.has(event.socket!)) {
                     const gameOver = new GameOver();
@@ -309,7 +308,7 @@ export class PongServerRuntime extends Scene {
 
         const accepted = new Set();
 
-        this.server.flushMessages((message) => {
+        this.game.server.flushMessages((message) => {
             switch(message.message.type) {
                 case PongEvents.JoinGameRequest:
                     this.playerJoin(message);
@@ -361,5 +360,13 @@ export class PongServerManifest implements IManifest {
     scripts = [];
         assets = {
         fonts: [],
+    };
+    server = {
+        address: {
+            host: "localhost",
+            port: 4200,
+        },
+        clientMessages: ClientMessages,
+        serverMessages: ServerMessages,
     };
 }

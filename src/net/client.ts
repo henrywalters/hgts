@@ -1,16 +1,11 @@
-import { NetEvent, NetEvents } from "./interfaces/net";
-import { NetMessages, QueuedMessage } from "./messages";
+import { INetAddress, NetEvents } from "./interfaces/net";
+import { IClient } from "./interfaces/client";
 import { NetElement } from "./net";
+import { INetMessages } from "./interfaces/messages";
 
-export class Client extends NetElement {
+export class Client extends NetElement implements IClient {
 
     private _socket: WebSocket | null = null;
-
-    private server: NetMessages;
-    private client: NetMessages;
-
-    public events: NetEvent[] = [];
-    public messages: QueuedMessage[] = [];
 
     public get socket() { 
         if (!this._socket) {
@@ -25,10 +20,8 @@ export class Client extends NetElement {
 
     private connectionDelay: number = 1000;
 
-    constructor(host: string, port: number, server: NetMessages, client: NetMessages) {
-        super(host, port);
-        this.server = server;
-        this.client = client;
+    constructor(address: INetAddress, client: INetMessages, server: INetMessages) {
+        super(address, client, server);
         this.connect();
     }
 
@@ -40,8 +33,7 @@ export class Client extends NetElement {
             this._socket = new WebSocket(this.connectionString);
 
             this.socket.onmessage = async (e) => {
-                // @ts-ignore
-                this.messages.push({message: this.server.read(await e.data.arrayBuffer())});
+                this.messages.push({message: this.serverMessages.read(await e.data.arrayBuffer())});
             } 
 
             this.socket.onopen = () => {

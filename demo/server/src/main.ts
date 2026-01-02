@@ -1,13 +1,15 @@
-import {Game} from "hgts/dist/core/game";
-import {ServerDemo} from "hgts/dist/demos/server/server";
-import {PongServerManifest} from "hgts/dist/demos/pongMultiplayer/server";
+import {Game} from "hagamets/dist/core/game";
+import {ServerDemo} from "hagamets/dist/demos/server/server";
+import {PongServerManifest} from "hagamets/dist/demos/pongMultiplayer/server";
 import { Clock } from "three";
 
 (() => {
 
     const tickRate = 50;
 
-    const game = new Game(new PongServerManifest(), true);
+    const manifest = new PongServerManifest();
+
+    const game = new Game(manifest, true);
 
     const clock = new Clock();
 

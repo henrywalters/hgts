@@ -15,34 +15,28 @@ import { NetEvents } from "../../net/interfaces/net";
 
 export class ServerRuntime extends Scene {
 
-    private server: Server = new Server("localhost", 4200, ServerMessages, ClientMessages);
-
     private players: Map<WebSocket, Player> = new Map();
 
     public onUpdate(dt: number): void {
         // console.log(`Delta Time = ${dt}`);
 
-        while (this.server.events.length > 0) {
-            const front = this.server.events.shift()!;
-
-            if (front.type === NetEvents.Disconnected) {
-                if (!this.players.has(front.socket!)) return;
-                const entityId = this.players.get(front.socket!)!.entity.id;
+        this.game.server.flushEvents((event) => {
+            if (event.type === NetEvents.Disconnected) {
+                if (!this.players.has(event.socket!)) return;
+                const entityId = this.players.get(event.socket!)!.entity.id;
                 console.log(`Player ${entityId} disconnected`)
                 this.removeEntity(entityId);
-                this.players.delete(front.socket!);
+                this.players.delete(event.socket!);
 
                 const left = new PlayerLeft();
                 left.serverId = entityId;
 
-                this.server.emit(ServerMessageTypes.PlayerLeft, left);
+                this.game.server.emit(ServerMessageTypes.PlayerLeft, left);
             }
-        }
-        
-        while (this.server.messages.length > 0) {
-            const front = this.server.messages.shift()!;
+        })
 
-            if (front.message.type === ClientMessageTypes.Connect) {
+        this.game.server.flushMessages((message) => {
+            if (message.message.type === ClientMessageTypes.Connect) {
 
                 const entity = this.addEntity("Player");
 
@@ -55,18 +49,18 @@ export class ServerRuntime extends Scene {
                 const player = entity.addComponent(Player);
                 player.color = new Color(Math.random(), Math.random(), Math.random());
 
-                this.players.set(front.socket, player);
+                this.players.set(message.socket!, player);
 
                 const reply = new PlayerConnected();
                 reply.color = player.color;
                 reply.serverId = entity.id;
                 
                 console.log(`Player ${reply.serverId} connected`);
-                front.socket.send(ServerMessages.write(reply));
+                message.socket!.send(ServerMessages.write(reply));
 
-                for (const client of this.server.clients) {
+                for (const client of this.game.server.clients) {
 
-                    if (client === front.socket) continue;
+                    if (client === message.socket!) continue;
 
                     if (!this.players.has(client)) continue;
 
@@ -76,7 +70,7 @@ export class ServerRuntime extends Scene {
                     joined.serverId = other.entity.id;
                     joined.color = other.color;
                     joined.position = other.entity.transform.position;
-                    front.socket.send(ServerMessages.write(joined)); 
+                    message.socket!.send(ServerMessages.write(joined)); 
                 }
 
                 const joined = new PlayerJoined();
@@ -84,13 +78,13 @@ export class ServerRuntime extends Scene {
                 joined.serverId = reply.serverId;
                 joined.color = reply.color;
 
-                this.server.emit(ServerMessageTypes.PlayerJoined, joined, [front.socket!]);
-            } else if (front.message.type === ClientMessageTypes.Move) {
-                const move = front.message as PlayerMove;
+                this.game.server.emit(ServerMessageTypes.PlayerJoined, joined, [message.socket!]);
+            } else if (message.message.type === ClientMessageTypes.Move) {
+                const move = message.message as PlayerMove;
 
                 console.log(move);
 
-                const entityId = this.players.get(front.socket)!.entity.id;
+                const entityId = this.players.get(message.socket!)!.entity.id;
 
                 this.getEntity(entityId)?.transform.position.copy(move.position);
 
@@ -101,29 +95,21 @@ export class ServerRuntime extends Scene {
                     socket.send(ServerMessages.write(reply));
                 }
             }
-        }
+        });
     }
 }
 
 export class ClientRuntime extends Scene {
 
-    private client: Client;
-
     private playerStatus: PlayerStatus = PlayerStatus.Disconnected;
 
     private serverId: number = -1;
 
-    constructor(game: IGame) {
-        super(game);
-        this.client = new Client("localhost", 4200, ServerMessages, ClientMessages);
-    }
-
     public onUpdate(dt: number): void {
 
-        if (!this.client.connected) return;
+        if (!this.game.client.connected) return;
 
-        while (this.client.messages.length > 0) {
-            const message = this.client.messages.shift()!;
+        this.game.client.flushMessages((message) => {
 
             if (message.message.type === ServerMessageTypes.Connected) {
 
@@ -191,12 +177,10 @@ export class ClientRuntime extends Scene {
                 this.removeEntity(left.serverId);
                 console.log(left);
             }
-        }
-
-        this.client.messages = [];
+        })
 
         if (this.playerStatus === PlayerStatus.Disconnected) {
-            this.client.socket.send(ClientMessages.write(new PlayerConnect()));
+            this.game.client.socket.send(ClientMessages.write(new PlayerConnect()));
             this.playerStatus = PlayerStatus.Connecting;
         }
 
@@ -215,7 +199,7 @@ export class ClientRuntime extends Scene {
                 const message = new PlayerMove();
                 message.position = player.entity.transform.position;
                 
-                this.client.socket.send(ClientMessages.write(message));
+                this.game.client.socket.send(ClientMessages.write(message));
 
                 (player.entity.transform as Transform).notifyUpdate();
             }

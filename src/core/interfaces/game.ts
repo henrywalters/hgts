@@ -2,6 +2,8 @@ import { Clock, WebGLRenderer } from "three";
 import { IScene, SceneCtr } from "./scene";
 import EventListenerPool, { EntityEvent, SceneEvent } from "../events";
 import { IInput } from "./input";
+import { IClient } from "../../net/interfaces/client";
+import { IServer } from "../../net/interfaces/server";
 
 export interface IGame {
     renderer: WebGLRenderer;
@@ -9,6 +11,9 @@ export interface IGame {
     input: IInput;
     clock: Clock;
     scenes: Map<string, IScene>;
+
+    client: IClient;
+    server: IServer;
 
     sceneEvents: EventListenerPool<SceneEvent>;
 

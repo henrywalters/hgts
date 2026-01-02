@@ -1,8 +1,9 @@
 import { Color, Vector2, Vector3 } from "three";
 import { Field, IParameterizable, Types } from "../core/reflection";
 import { WebSocket } from "ws";
+import { BinaryField, INetMessage, INetMessages, NetMessageConfig, NetMessageCtr } from "./interfaces/messages";
 
-export abstract class NetMessage implements IParameterizable {
+export abstract class NetMessage implements INetMessage {
 
     abstract type: number;
 
@@ -15,17 +16,6 @@ export abstract class NetMessage implements IParameterizable {
     getParams(): Map<string, Field> {
         return this._fields;
     }
-}
-
-export interface QueuedMessage<T extends NetMessage = any> {
-    socket: WebSocket;
-    message: T;
-}
-
-export interface BinaryField {
-    length: number | ((value: any) => number);
-    write(view: DataView, offset: number, value: any): void;
-    read(view: DataView, offset: number): any;
 }
 
 export const BinaryTypes: {[key: string]: BinaryField} = {
@@ -120,13 +110,8 @@ export const BinaryTypes: {[key: string]: BinaryField} = {
     }
 };
 
-export type NetMessageCtr<T extends NetMessage> = {
-    new (): T;
-    name: string;
-}
-
-export class NetMessages {
-    private _config: Map<number, NetMessageCtr<any>> = new Map();
+export class NetMessages implements INetMessages {
+    private _config: NetMessageConfig = new Map();
 
     public get config() { return this._config; }
 
@@ -149,7 +134,7 @@ export class NetMessages {
         }
     }
 
-    public write<T extends NetMessage>(data: T): ArrayBuffer {
+    public write<T extends INetMessage>(data: T): ArrayBuffer {
         const params = data.getParams();
         let size = 0;
 
@@ -174,7 +159,7 @@ export class NetMessages {
         return buffer;
     }
 
-    public read<T extends NetMessage>(data: ArrayBuffer): T {
+    public read<T extends INetMessage>(data: ArrayBuffer): T {
 
         const view = new DataView(data);
 

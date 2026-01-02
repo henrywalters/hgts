@@ -1,6 +1,5 @@
 import { Renderer } from "../../common/systems/renderer";
 import { IManifest } from "../../core/interfaces/manifest";
-import { Client } from "../../net/client";
 import { ClientMessages, GameOver, GameReady, GameUpdate, JoinGameReply, PlayerInput, PlayerReady, PongEvents, ServerMessages } from "./messages";
 import RuntimeData from "./assets/scenes/runtime.json";
 import MenuData from "./assets/scenes/menu.json";
@@ -14,9 +13,8 @@ import { UI } from "../../common/systems/ui";
 import { JoinGame } from "./scripts/joinGame";
 import { PongMenuState, PongMenuStates, PongState, PongStates } from "./state";
 import { MeshPrimitive, MeshPrimitiveType } from "../../common/components/mesh";
-import { Color, Vector2, Vector3 } from "three";
+import { Color, Vector3 } from "three";
 import { Transform } from "../../common/components/transform";
-import { OrthographicCamera } from "../../common/components/camera";
 import { IEntity } from "../../ecs/interfaces/entity";
 import { PongPaddle } from "./paddle";
 import { PongBall } from "./ball";
@@ -24,8 +22,6 @@ import { RuntimeText } from "./scripts/runtimeText";
 import { Buttons } from "../../core/interfaces/input";
 import { BALL_SIZE, GAME_SIZE, PADDLE_OFFSET, PADDLE_SIZE, PADDLE_SPEED } from "./constants";
 import { Smooth } from "../../common/components/smooth";
-
-export const PongClient = new Client("localhost", 4200, ServerMessages, ClientMessages);
 
 export class PongClientRuntime extends RenderScene {
 
@@ -35,7 +31,7 @@ export class PongClientRuntime extends RenderScene {
 
     public onActivate(): void {
 
-        if (!PongClient.connected) {
+        if (!this.game.client.connected) {
             this.game.activateScene("menu");
             return;
         }
@@ -92,12 +88,12 @@ export class PongClientRuntime extends RenderScene {
         this.player1.getComponent(Smooth)!.targetPosition = this.player1.transform.position;
         this.player2.getComponent(Smooth)!.targetPosition = this.player2.transform.position;
 
-        PongClient.socket.send(ClientMessages.write(new PlayerReady()));
+        this.game.client.socket.send(ClientMessages.write(new PlayerReady()));
     }
 
     public onUpdate(dt: number): void {
 
-        if (!PongClient.connected) {
+        if (!this.game.client.connected) {
             this.game.activateScene("menu");
             return;
         }
@@ -111,13 +107,13 @@ export class PongClientRuntime extends RenderScene {
         input.down = down;
         input.launch = space;
 
-        PongClient.socket.send(ClientMessages.write(input));
+        this.game.client.socket.send(ClientMessages.write(input));
 
-        PongClient.flushEvents((event) => {
+        this.game.client.flushEvents((event) => {
             console.log(event);
         });
 
-        PongClient.flushMessages((message) => {
+        this.game.client.flushMessages((message) => {
 
             if (message.message.type === PongEvents.GameOver) {
                 const over = message.message as GameOver;
@@ -170,15 +166,15 @@ export class PongClientRuntime extends RenderScene {
 
 export class PongClientMenu extends RenderScene {
     public onUpdate(dt: number): void {
-        if (!PongClient.connected) {
+        if (!this.game.client.connected) {
             PongMenuState.state = PongMenuStates.Disconnected;
         }
 
-        if (PongClient.connected && PongMenuState.state === PongMenuStates.Disconnected) {
+        if (this.game.client.connected && PongMenuState.state === PongMenuStates.Disconnected) {
             PongMenuState.state = PongMenuStates.Connected;
         }
 
-        PongClient.flushMessages((message) => {
+        this.game.client.flushMessages((message) => {
             if (message.message.type === PongEvents.JoinGameReply) {
                 const reply = message.message as JoinGameReply;
                 PongState.isPlayerOne = reply.isPlayerOne;
@@ -224,5 +220,13 @@ export class PongClientManifest implements IManifest {
                 data: DefaultFont as unknown as FontData,
             }
         ],
+    };
+    client = {
+        address: {
+            host: "localhost",
+            port: 4200,
+        },
+        clientMessages: ClientMessages,
+        serverMessages: ServerMessages,
     };
 }

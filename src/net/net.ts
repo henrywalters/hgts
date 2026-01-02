@@ -1,23 +1,33 @@
-import { NetEvent } from "./interfaces/net";
-import { QueuedMessage } from "./messages";
+import { INetMessages, QueuedMessage } from "./interfaces/messages";
+import { INetElement, INetAddress, NetEvent } from "./interfaces/net";
 
-export abstract class NetElement {
-    private _host: string;
-    private _port: number;
+export abstract class NetElement implements INetElement {
+    private _address: INetAddress;
 
-    public get host() { return this._host; }
-    public get port() { return this._port; }
+    private _clientMessages: INetMessages;
+    private _serverMessages: INetMessages;
 
-    abstract events: NetEvent[];
-    abstract messages: QueuedMessage[];
+    public get address() { return this._address; }
 
-    public get connectionString() {
-        return `ws://${this.host}:${this.port}`;
+    public get clientMessages() {
+        return this._clientMessages;
     }
 
-    constructor(host: string = "localhost", port: number = 4200) {
-        this._host = host;
-        this._port = port;
+    public get serverMessages() {
+        return this._serverMessages;
+    }
+
+    protected events: NetEvent[] = [];
+    protected messages: QueuedMessage[] = [];
+
+    public get connectionString() {
+        return `ws://${this.address.host}:${this.address.port}`;
+    }
+
+    constructor(address: INetAddress, client: INetMessages, server: INetMessages) {
+        this._address = address;
+        this._clientMessages = client;
+        this._serverMessages = server;
     }
 
     public flushEvents(cb: (event: NetEvent) => void): void {

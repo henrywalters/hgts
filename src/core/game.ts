@@ -6,6 +6,10 @@ import EventListenerPool, { EntityEvent, SceneEvent, SceneEvents } from "./event
 import { IManifest } from "./interfaces/manifest";
 import { ScriptRegistry } from "./script";
 import { Assets } from "./assets";
+import { IClient } from "../net/interfaces/client";
+import { IServer } from "../net/interfaces/server";
+import { Server } from "../net/server";
+import { Client } from "../net/client";
 
 export class Game implements IGame {
     private _scenes: Map<string, IScene> = new Map();
@@ -14,6 +18,23 @@ export class Game implements IGame {
     private _input: Input | null = null;
     private _renderer: WebGLRenderer | null = null;
     private _clock = new Clock();
+
+    private _client?: IClient;
+    private _server?: IServer;
+
+    public get client() {
+        if (!this._client) {
+            throw new Error("Client not registered");
+        }
+        return this._client;
+    }
+
+    public get server() {
+        if (!this._server) {
+            throw new Error("Server not registered");
+        }
+        return this._server;
+    }
 
     public get renderer() { 
         if (!this._renderer) {
@@ -59,6 +80,15 @@ export class Game implements IGame {
     }
 
     public loadManifest(manifest: IManifest) {
+
+        if (manifest.server) {
+            this._server = new Server(manifest.server.address, manifest.server.clientMessages, manifest.server.serverMessages);
+        }
+
+        if (manifest.client) {
+            this._client = new Client(manifest.client.address, manifest.client.clientMessages, manifest.client.serverMessages);
+        }
+
         if (manifest.assets.fonts) {
             for (const font of manifest.assets.fonts) {
                 Assets.loadFont(font).then(() => {

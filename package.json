@@ -1,7 +1,7 @@
 {
-  "name": "hgts",
-  "version": "1.0.0",
-  "description": "Library for interacting with the HAuth server",
+  "name": "hagamets",
+  "version": "1.0.1",
+  "description": "HaGame TypeScript Library",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
