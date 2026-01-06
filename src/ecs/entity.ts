@@ -5,10 +5,13 @@ import { IEntity } from "./interfaces/entity";
 import { HGObject } from "../core/object";
 import { IScene } from "../core/interfaces/scene";
 import { EntityEvents } from "../core/events";
+import { Vector3 } from "three";
 
 export class Entity extends HGObject implements IEntity {
 
     public children: Entity[] = [];
+    public parent?: Entity;
+
     public name: string = "";
 
     private _scene: IScene;
@@ -16,6 +19,30 @@ export class Entity extends HGObject implements IEntity {
 
     public get transform(): ITransform {
         return this.scene.components.get(this, Transform)!;
+    }
+
+    public get position(): Vector3 {
+        const pos = this.transform.position.clone();
+        let node = this.parent;
+        while (node) {
+            pos.add(node.transform.position);
+            node = node.parent;
+        }
+        return pos;
+    }
+
+    public get scale(): Vector3 {
+        const scale = this.transform.scale.clone();
+        let node = this.parent;
+        while (node) {
+            scale.multiply(node.transform.scale);
+            node = node.parent;
+        }
+        return scale;
+    }
+
+    public get rotation(): Vector3 {
+        return this.transform.rotation;
     }
 
     constructor(name = "", scene: IScene, id?: number) {

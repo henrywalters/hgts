@@ -43,16 +43,54 @@ export class EntityTree extends EditorComponent implements IEditorComponent {
         })
     }
 
+    private renderEntityTree(entity: IEntity) {
+        const item = document.createElement('sl-tree-item');
+        item.setAttribute('draggable', "true");
+        item.innerText = entity.name;
+        item.id = `Entity_${entity.id}`;
+        item.setAttribute('entity-id', entity.id.toString());
+
+        item.addEventListener('dragstart', (e) => {
+            e.stopPropagation();
+            e.dataTransfer?.setData("entity-id", entity.id.toFixed(0));
+        })
+
+        item.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        })
+
+        item.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const entityId = e.dataTransfer?.getData('entity-id');
+            if (entityId) {
+                console.log(`Adding Entity ${entityId} to ${entity.id}`);
+                this.editor.game.currentScene!.changeEntityOwner(parseInt(entityId), entity.id);
+                this.renderTree();
+            }
+        })
+
+        this.tree.parentElement?.addEventListener('drop', (e) => {
+            const entityId = e.dataTransfer?.getData('entity-id');
+            if (entityId) {
+                this.editor.game.currentScene!.changeEntityOwner(parseInt(entityId));
+                this.renderTree();
+            }
+        })
+
+        for (const child of entity.children) {
+            item.appendChild(this.renderEntityTree(child));
+        }
+
+        return item;
+    }
+
     renderTree() {
         this.tree.innerHTML = '';
         const root = document.createElement('sl-tree');
         if (this.editor.game.currentScene) {
             for (const entity of this.editor.game.currentScene.entities) {
-                const item = document.createElement('sl-tree-item');
-                item.innerText = entity.name;
-                item.id = `Entity_${entity.id}`;
-                item.setAttribute('entity-id', entity.id.toString());
-                root.appendChild(item);
+                root.appendChild(this.renderEntityTree(entity));
             }
         }
         root.addEventListener('sl-selection-change', (e) => {

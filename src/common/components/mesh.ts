@@ -1,4 +1,4 @@
-import { BoxGeometry, Color, Material, Mesh, MeshBasicMaterial, PlaneGeometry, SphereGeometry, Vector2 } from "three";
+import { Box3, BoxGeometry, Color, Material, Mesh, MeshBasicMaterial, PlaneGeometry, SphereGeometry, Vector2, Vector3 } from "three";
 import { Component } from "../../ecs/component";
 import { Param, Types } from "../../core/reflection";
 import { TextGeometry } from "three/examples/jsm/Addons.js";
@@ -7,6 +7,7 @@ import { AABB } from "../../utils/math";
 
 export abstract class MeshComponent extends Component {
     abstract updateMesh(mesh: Mesh): void;
+    abstract getAABB(mesh: Mesh): void;
 }
 
 export enum MeshPrimitiveType {
@@ -69,6 +70,12 @@ export class MeshPrimitive extends MeshComponent {
     }
 }
 
+export enum TextHAlignment {
+    Left = 'Left',
+    Center = 'Center',
+    Right = 'Right',
+}
+
 export class TextMesh extends MeshComponent {
 
     @Param({type: Types.String})
@@ -86,6 +93,11 @@ export class TextMesh extends MeshComponent {
     @Param({type: Types.Color})
     color: Color = new Color('black');
 
+    @Param({type: Types.Enum, enum: TextHAlignment})
+    alignment: TextHAlignment = TextHAlignment.Left;
+
+    public textSize: Vector3 = new Vector3();
+
     updateMesh(mesh: Mesh) {
 
         if (!Assets.fonts.has(this.font)) {
@@ -98,7 +110,15 @@ export class TextMesh extends MeshComponent {
             size: this.size,
             depth: this.depth,
         });
+        mesh.geometry.computeBoundingBox();
+
+        mesh.geometry.boundingBox?.getSize(this.textSize);
 
         mesh.material = new MeshBasicMaterial({color: this.color});
+    }
+
+    getAABB(mesh: Mesh): AABB {
+        const pos = new Vector2;
+        return new AABB(new Vector2(), new Vector2());
     }
 }

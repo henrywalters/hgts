@@ -1,8 +1,9 @@
 import { Color } from "three";
 import { Param, Types } from "../../../core/reflection";
 import { Component } from "../../../ecs/component";
+import { UIElement } from "./element";
 
-export class Button extends Component {
+export class Button extends UIElement {
     @Param({type: Types.Color})
     defaultColor = new Color(1, 1, 1);
 

@@ -12,6 +12,7 @@ import EventListenerPool, { EntityEvent, EntityEvents } from "./events";
 import { Script, ScriptRegistry } from "./script";
 import { Behavior } from "../common/components/behavior";
 import { IScript } from "./interfaces/script";
+import { deserializeScene, serializeScene } from "./serialization";
 
 export class Scene implements IScene {
 
@@ -45,80 +46,12 @@ export class Scene implements IScene {
     }
 
     save(): SceneData {
-        const data: SceneData = {
-            entities: [],
-        };
-
-        for (const entity of this.entities) {
-            const el: EntityData = {
-                id: entity.id,
-                name: entity.name,
-                children: [],
-                components: []
-            };
-
-            for (const component of entity.getComponents()) {
-                const comp: ComponentData = {
-                    id: component.id,
-                    name: component.constructor.name,
-                    params: {}
-                };
-
-                for (const [key, param] of component.getParams()) {
-                    // @ts-ignore
-                    comp.params[key] = serialize(param, component[key]);
-                }
-
-                if (component instanceof Behavior) {
-                    const script = ScriptRegistry.get(component.scriptName, component)!;
-                    for (const [key, param] of script.getParams()) {
-                        // @ts-ignore
-                        comp.params[key] = serialize(param, script[key]);
-                    }
-                }
-
-                el.components.push(comp);
-            }
-
-            data.entities.push(el);
-        }
-
-        return data;
+        return serializeScene(this);    
     }
+
     load(data: SceneData): void {
         this.clear();
-
-        for (const entityData of data.entities) {
-            const entity = this.addEntity(entityData.name, entityData.id);
-            for (const componentData of entityData.components) {
-                const component = this.components.addByName(entity, componentData.name);
-                const params = component.getParams();
-                for (const key in componentData.params) {
-                    if (!params.has(key)) {
-                        continue;
-                    }
-                    const field = params.get(key)!;
-                    // @ts-ignore
-                    component[key] = deserialize(field, componentData.params[key]);
-                }
-
-                if (component instanceof Behavior) {
-                    const script = ScriptRegistry.get(component.scriptName, component);
-                    const scriptParams = script!.getParams();
-                    for (const key in componentData.params) {
-                        if (!scriptParams.has(key)) continue;
-                        // @ts-ignore
-                        script[key] = deserialize(scriptParams.get(key)!, componentData.params[key]);
-                    }
-                }
-
-                this.entityEvents.emit({
-                    type: EntityEvents.AddComponent,
-                    entity: entity,
-                    component: component,
-                });
-            }
-        }
+        deserializeScene(this, data);
     }
 
     public onUpdate(dt: number): void {}
@@ -133,29 +66,80 @@ export class Scene implements IScene {
 
     public onDeactivate(): void {}
 
-    removeEntity(id: number): void {
-        const index = this.entities.findIndex((value) => value.id === id);
+    removeEntity(entityId: IEntity | number): void {
+        const entity = typeof entityId === 'number' ? this.getEntity(entityId) : entityId;
+        if (!entity) return;
+
+        for (const child of entity.children) {
+            this.removeEntity(child);
+        }
+
+        const list = entity.parent ? entity.parent.children : this.entities;
+        const index = list.findIndex((value) => value.id === entity.id);
         if (index >= 0) {
+            this._entityMap.delete(entity.id);
+            list.splice(index, 1);
             this.entityEvents.emit({
                 type: EntityEvents.Remove,
-                entity: this.entities[index],
+                entity,
             })
-            this.entities.splice(index, 1);
         }
     }
 
-    public addEntity(name: string = "", id?: number) {
+    public addEntity(name: string = "", id?: number, parentId?: number) {
         const entity = new Entity(name, this, id);
-        this.entities.push(entity);
+        if (parentId) {
+            const parent = this.getEntity(parentId);
+            if (!parent) {
+                throw new Error(`Entity #${parentId} does not exist`);
+            }
+            parent.children.push(entity);
+            entity.parent = parent;
+        } else {
+            this.entities.push(entity);
+        }
+
         this._entityMap.set(entity.id, entity);
         return entity;
     }
 
-    public getEntity(id: number): IEntity | null {
+    public getEntity(id: number): Entity | null {
         if (this._entityMap.has(id)) {
-            return this._entityMap.get(id) as IEntity;
+            return this._entityMap.get(id) as Entity;
         }
         return null;
+    }
+
+    public changeEntityOwner(id: number, parentId?: number): void {
+
+        if (id && parentId && id === parentId) return;
+
+        const entity = this.getEntity(id);
+
+        if (!entity) {
+            console.error(`Entity #${id} does not exist`);
+            return;
+        }
+
+        console.log(entity);
+
+        const list = entity.parent ? entity.parent.children : this.entities;
+        const index = list.findIndex((other) => other.id === entity.id);
+        list.splice(index, 1);
+
+        if (parentId) {
+            const parent = this.getEntity(parentId);
+            console.log(parent);
+            if (!parent) {
+                console.error(`Entity #${parentId} does not exist`);
+                return;
+            }
+            entity.parent = parent;
+            parent.children.push(entity);
+        } else {
+            entity.parent = void 0;
+            this.entities.push(entity);
+        }
     }
 
     public addSystem<T extends ISystem>(ctr: SystemCtr<T>): T {

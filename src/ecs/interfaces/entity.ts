@@ -1,3 +1,4 @@
+import { Vector3 } from "three";
 import { IScene } from "../../core/interfaces/scene";
 import { ITransform } from "../../core/transform";
 import { ComponentCtr, ComponentData, IComponent } from "./component";
@@ -12,9 +13,14 @@ export interface EntityData {
 export interface IEntity {
     id: number;
     name: string;
+    parent?: IEntity;
     children: IEntity[];
     transform: ITransform;
     scene: IScene;
+
+    position: Vector3;
+    scale: Vector3;
+    rotation: Vector3;
 
     addComponent<T extends IComponent>(ctr: ComponentCtr<T>): T;
 

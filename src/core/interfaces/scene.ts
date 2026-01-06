@@ -32,7 +32,8 @@ export interface IScene {
     onResize(width: number, height: number): void;
 
     removeEntity(id: number): void;
-    addEntity(name?: string, id?: number): IEntity;
+    addEntity(name?: string, id?: number, parentId?: number): IEntity;
+    changeEntityOwner(id: number, parentId?: number): void;
     getEntity(id: number): IEntity | null;
     addSystem<T extends ISystem>(ctr: SystemCtr<T>): ISystem;
     initialize(): void;

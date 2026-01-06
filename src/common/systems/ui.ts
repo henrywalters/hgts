@@ -1,17 +1,28 @@
-import { Vector2 } from "three";
+import { Vector2, Vector3 } from "three";
 import { Axes, Buttons } from "../../core/interfaces/input";
 import { IScene } from "../../core/interfaces/scene";
 import { System } from "../../ecs/system";
 import { OrthographicCamera } from "../components/camera";
 import { MeshPrimitive } from "../components/mesh";
 import { Button } from "../components/ui/button";
+import { ComponentCtr } from "../../ecs/interfaces/component";
+import { Container } from "../components/ui/container";
+import { getAnchorPosition, UIElement } from "../components/ui/element";
+import { EntityEvents } from "../../core/events";
 
 export class UI extends System {
+
+    private registered: ComponentCtr<any>[] = [
+        Container,
+        Button,
+    ]
 
     constructor(scene: IScene) {
         super(scene);
 
-        this.scene.components.register(Button);
+        for (const type of this.registered) {
+            this.scene.components.register(type);
+        }
     }
 
     private findCamera(): OrthographicCamera | null {
@@ -30,6 +41,47 @@ export class UI extends System {
         }
 
     onBeforeUpdate(): void {
+
+        for (const type of this.registered) {
+            this.scene.components.forEach(type, (component) => {
+                if (component instanceof UIElement) {
+
+                    const mesh = component.entity.getComponent(MeshPrimitive);
+                    if (mesh) {
+                        mesh.width = component.size.x;
+                        mesh.height = component.size.y;
+                        this.scene.entityEvents.emit({
+                            type: EntityEvents.UpdateComponent,
+                            entity: component.entity,
+                            component: mesh,
+                        })
+                    }
+
+                    if (component.anchored) {
+                        const parentSize = new Vector2();
+                        const parentPos = new Vector2();
+                        this.scene.game.renderer.getSize(parentSize);
+
+                        if (component.entity.parent) {
+                            for (const other of this.registered) {
+                                const comp = component.entity.parent.getComponent(other);
+                                if (comp && comp instanceof UIElement) {
+                                    parentSize.copy(comp.size);
+                                    parentPos.x = comp.entity.position.x;
+                                    parentPos.y = comp.entity.position.y;
+                                }
+                            }
+                        }
+                        const pos = getAnchorPosition(component.size, parentSize, component.anchorAlignment);
+                        // console.log(component.size, parentSize, pos);
+                        component.entity.transform.position.x = pos.x;
+                        component.entity.transform.position.y = pos.y;
+
+                        // console.log(parentSize);
+                    }
+                }
+            });
+        }
 
         let mousePos = this.scene.game.input.getAxis(Axes.MousePosition);
         const camera = this.findCamera();

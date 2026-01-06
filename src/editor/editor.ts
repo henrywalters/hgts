@@ -12,6 +12,7 @@ import EventListenerPool, { EntityEvents, SceneEvents } from "../core/events";
 import { ClientDemo } from "../demos/server/client";
 import { PongClientManifest } from "../demos/pongMultiplayer/client";
 import { Vector2 } from "three";
+import { UIManifest } from "../demos/ui/manifest";
 
 export class Editor implements IEditor {
     
@@ -25,7 +26,8 @@ export class Editor implements IEditor {
 
         console.log("New Game");
 
-        this._game = new Game(new PongClientManifest());
+        //this._game = new Game(new PongClientManifest());
+        this._game = new Game(UIManifest);
 
         this.config = {
             root: {
@@ -65,7 +67,7 @@ export class Editor implements IEditor {
         };
 
         this.layout = new GoldenLayout(container);
-        this.addComponent('GameView', new GameView(this, new Vector2(640, 480)));
+        this.addComponent('GameView', new GameView(this, new Vector2(1024, 768)));
         this.addComponent('EntityTree', new EntityTree(this));
         this.addComponent('EntityView', new EntityView(this));
         this.addComponent('AssetsView', new AssetsView(this));

@@ -2,7 +2,7 @@ import { BoxGeometry, Euler, Mesh, MeshBasicMaterial, MeshStandardMaterial, Obje
 import { IScene } from "../../core/interfaces/scene";
 import { System } from "../../ecs/system";
 import { OrthographicCamera, PerspectiveCamera } from "../components/camera";
-import { MeshComponent, MeshPrimitive, TextMesh } from "../components/mesh";
+import { MeshComponent, MeshPrimitive, TextHAlignment, TextMesh } from "../components/mesh";
 import { EntityEvents } from "../../core/events";
 import { ComponentCtr } from "../../ecs/interfaces/component";
 import { Smooth } from "../components/smooth";
@@ -109,17 +109,27 @@ export class Renderer extends System {
             return;
         }
 
-        camera.camera.position.copy(camera.entity.transform.position);
+        camera.camera.position.copy(camera.entity.position);
         camera.camera.quaternion.setFromEuler(new Euler(camera.entity.transform.rotation.x, camera.entity.transform.rotation.y, camera.entity.transform.rotation.z, 'YXZ'))
 
         let euler = new Euler();
 
         for (const type of this.managedComponents) {
             this.scene.components.forEach(type, (component) => {
-                let transform = component.entity.transform;
-                euler.set(transform.rotation.x, transform.rotation.y, transform.rotation.z, 'XYZ');
+
+                const position = component.entity.position;
+
+                if (component instanceof TextMesh) {
+                    if (component.alignment === TextHAlignment.Center) {
+                        position.x -= component.textSize.x / 2;
+                    } else if (component.alignment === TextHAlignment.Right) {
+                        position.x -= component.textSize.x;
+                    }
+                }
+
+                euler.set(component.entity.rotation.x, component.entity.rotation.y, component.entity.rotation.z, 'XYZ');
                 const mesh = this.meshes.get(component.id)!;
-                mesh.position.copy(transform.position);
+                mesh.position.copy(position);
                 mesh.rotation.copy(euler);
             });
         }
