@@ -13,8 +13,8 @@ import { Transform } from "../../common/components/transform";
 export class EntityTree extends EditorComponent implements IEditorComponent {
 
     private tree: HTMLDivElement;
-
     private index: number = 0;
+    private expanded: {[id: number]: boolean} = {};
 
     constructor(editor: IEditor) {
         super(editor);
@@ -22,7 +22,12 @@ export class EntityTree extends EditorComponent implements IEditorComponent {
 
         for (const [name, scene] of this.editor.game.scenes) {
             scene.entityEvents.listen((e) => {
-                if (e.type === EntityEvents.Create || e.type === EntityEvents.Remove) {
+                if (e.type === EntityEvents.Create) {
+                    this.expanded[e.entity.id] = true;
+                    console.log(this.expanded);
+                    this.renderTree();
+                } else if (e.type === EntityEvents.Remove) {
+                    delete this.expanded[e.entity.id];
                     this.renderTree();
                 } else if (e.type === EntityEvents.Change) {
                     const el = document.getElementById(`Entity_${e.entity.id}`);
@@ -49,6 +54,26 @@ export class EntityTree extends EditorComponent implements IEditorComponent {
         item.innerText = entity.name;
         item.id = `Entity_${entity.id}`;
         item.setAttribute('entity-id', entity.id.toString());
+
+        if (!(entity.id in this.expanded)) {
+            this.expanded[entity.id] = true;
+        }
+
+        if (this.expanded[entity.id]) {
+            item.setAttribute('expanded', 'true');
+        }
+
+        item.addEventListener('sl-expand', (e) => {
+            e.stopPropagation();
+            this.expanded[entity.id] = true;
+            console.log(this.expanded);
+        });
+
+        item.addEventListener('sl-collapse', (e) => {
+            e.stopPropagation();
+            this.expanded[entity.id] = false;
+            console.log(this.expanded);
+        });
 
         item.addEventListener('dragstart', (e) => {
             e.stopPropagation();

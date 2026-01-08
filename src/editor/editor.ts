@@ -20,6 +20,8 @@ export class Editor implements IEditor {
     private layout: GoldenLayout;
     private _game: Game;
 
+    private saveFile = "";
+
     public get game(): IGame { return this._game; }
 
     constructor(container: HTMLElement) {
@@ -67,7 +69,7 @@ export class Editor implements IEditor {
         };
 
         this.layout = new GoldenLayout(container);
-        this.addComponent('GameView', new GameView(this, new Vector2(1024, 768)));
+        this.addComponent('GameView', new GameView(this));
         this.addComponent('EntityTree', new EntityTree(this));
         this.addComponent('EntityView', new EntityView(this));
         this.addComponent('AssetsView', new AssetsView(this));
@@ -75,6 +77,34 @@ export class Editor implements IEditor {
         document.getElementById('file_menu')?.addEventListener('sl-select', (e) => {
             // @ts-ignore
             const id = e.detail.item.id;
+
+            const saveAs = async () => {
+                // @ts-ignore
+                const file = await window.showSaveFilePicker({
+                    suggestedName: 'scene.json',
+                    types: [{
+                        description: 'JSON Files',
+                        accept: { 'text/plain': ['.json']}
+                    }],
+                });
+                const writeable = await file.createWritable();
+                await writeable.write(JSON.stringify(this.game.currentScene?.save(), null, 2));
+                await writeable.close();
+                this.game.sceneEvents.emit({type: SceneEvents.Save});
+            };
+
+            const load = async () => {
+                // @ts-ignore
+                const [fileHandle] = await window.showOpenFilePicker();
+                const file = await fileHandle.getFile();
+                const text = await file.text();
+                const data = JSON.parse(text);
+                this.game.currentScene?.load(data);
+            }
+
+            if (id === 'load_scene') {
+                load();   
+            }
             
             if (id === 'new_scene') {
                 this.game.currentScene?.clear();
@@ -82,8 +112,13 @@ export class Editor implements IEditor {
             }
 
             if (id === 'save_scene') {
-                console.log(JSON.stringify(this.game.currentScene?.save()));
-                this.game.sceneEvents.emit({type: SceneEvents.Save});
+                if (this.saveFile === "") {
+                    saveAs();
+                }
+            }
+
+            if (id === 'save_scene_as') {
+                saveAs();   
             }
         })
     }

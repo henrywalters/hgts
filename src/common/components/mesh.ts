@@ -4,6 +4,7 @@ import { Param, Types } from "../../core/reflection";
 import { TextGeometry } from "three/examples/jsm/Addons.js";
 import { Assets } from "../../core/assets";
 import { AABB } from "../../utils/math";
+import { TextHAlignment } from "./ui/element";
 
 export abstract class MeshComponent extends Component {
     abstract updateMesh(mesh: Mesh): void;
@@ -70,12 +71,6 @@ export class MeshPrimitive extends MeshComponent {
     }
 }
 
-export enum TextHAlignment {
-    Left = 'Left',
-    Center = 'Center',
-    Right = 'Right',
-}
-
 export class TextMesh extends MeshComponent {
 
     @Param({type: Types.String})
@@ -98,6 +93,21 @@ export class TextMesh extends MeshComponent {
 
     public textSize: Vector3 = new Vector3();
 
+    yOffset() {
+
+        if (!Assets.fonts.has(this.font)) {
+            console.warn(`Font does not exist ${this.font}`);
+            return 0;
+        }
+
+        const font = Assets.fonts.get(this.font);
+
+        const ascender = font.data.ascender || 1;
+        const descender = font.data.descender || 0;
+
+        return  ((ascender + descender) / 2) * this.size / font.data.resolution;
+    }
+
     updateMesh(mesh: Mesh) {
 
         if (!Assets.fonts.has(this.font)) {
@@ -105,14 +115,18 @@ export class TextMesh extends MeshComponent {
             return;
         }
 
+        const font = Assets.fonts.get(this.font);
+
         mesh.geometry = new TextGeometry(this.text, {
-            font: Assets.fonts.get(this.font),
+            font,
             size: this.size,
             depth: this.depth,
         });
+
         mesh.geometry.computeBoundingBox();
 
         mesh.geometry.boundingBox?.getSize(this.textSize);
+        this.textSize.setY(this.size);
 
         mesh.material = new MeshBasicMaterial({color: this.color});
     }

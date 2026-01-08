@@ -1,4 +1,4 @@
-import { Vector2, Vector3 } from "three";
+import { Euler, Mesh, Vector2, Vector3 } from "three";
 import { Axes, Buttons } from "../../core/interfaces/input";
 import { IScene } from "../../core/interfaces/scene";
 import { System } from "../../ecs/system";
@@ -7,14 +7,26 @@ import { MeshPrimitive } from "../components/mesh";
 import { Button } from "../components/ui/button";
 import { ComponentCtr } from "../../ecs/interfaces/component";
 import { Container } from "../components/ui/container";
-import { getAnchorPosition, UIElement } from "../components/ui/element";
+import { getAnchorPosition, UIElement, UIRenderableElement, UIUnit } from "../components/ui/element";
 import { EntityEvents } from "../../core/events";
+import { TextInput } from "../components/ui/textInput";
+import { IEntity } from "../../ecs/interfaces/entity";
+import { Focusable } from "../components/ui/focusable";
+import { clamp } from "three/src/math/MathUtils.js";
+import { Text } from "../components/ui/text";
 
 export class UI extends System {
+
+    private meshes: Map<number, Mesh[]> = new Map();
+
+    private focused: IEntity | null = null;
 
     private registered: ComponentCtr<any>[] = [
         Container,
         Button,
+        Text,
+        TextInput,
+        Focusable,
     ]
 
     constructor(scene: IScene) {
@@ -23,6 +35,43 @@ export class UI extends System {
         for (const type of this.registered) {
             this.scene.components.register(type);
         }
+
+        document.addEventListener('keyup', (e) => {
+            if (this.focused) {
+                const input = this.focused.getComponent(TextInput);
+                if (input) {
+                    const key = e.key;
+                    if (/^[a-zA-Z0-9\s!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]$/.test(key)) {
+                        input.addChar(e.key);
+                        console.log(input.text);
+                    }
+                }
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (this.focused) {
+                const input = this.focused.getComponent(TextInput);
+                if (input) {
+                    console.log(e.key, e.key === 'Backspace');
+                    if (e.key === 'Backspace') {
+                        input.delete();
+                    }
+                }
+            }
+        });
+
+        this.scene.entityEvents.listen((e) => {
+            if (!e.component || !(e.component instanceof UIRenderableElement)) return;
+
+            if (e.type === EntityEvents.AddComponent) {
+                e.component.addMeshes();
+            } else if (e.type === EntityEvents.UpdateComponent) {
+                e.component.updateMeshes();
+            } else if (e.type === EntityEvents.RemoveComponent) {
+                e.component.removeMeshes();
+            }
+        })
     }
 
     private findCamera(): OrthographicCamera | null {
@@ -44,42 +93,7 @@ export class UI extends System {
 
         for (const type of this.registered) {
             this.scene.components.forEach(type, (component) => {
-                if (component instanceof UIElement) {
-
-                    const mesh = component.entity.getComponent(MeshPrimitive);
-                    if (mesh) {
-                        mesh.width = component.size.x;
-                        mesh.height = component.size.y;
-                        this.scene.entityEvents.emit({
-                            type: EntityEvents.UpdateComponent,
-                            entity: component.entity,
-                            component: mesh,
-                        })
-                    }
-
-                    if (component.anchored) {
-                        const parentSize = new Vector2();
-                        const parentPos = new Vector2();
-                        this.scene.game.renderer.getSize(parentSize);
-
-                        if (component.entity.parent) {
-                            for (const other of this.registered) {
-                                const comp = component.entity.parent.getComponent(other);
-                                if (comp && comp instanceof UIElement) {
-                                    parentSize.copy(comp.size);
-                                    parentPos.x = comp.entity.position.x;
-                                    parentPos.y = comp.entity.position.y;
-                                }
-                            }
-                        }
-                        const pos = getAnchorPosition(component.size, parentSize, component.anchorAlignment);
-                        // console.log(component.size, parentSize, pos);
-                        component.entity.transform.position.x = pos.x;
-                        component.entity.transform.position.y = pos.y;
-
-                        // console.log(parentSize);
-                    }
-                }
+                component.update();
             });
         }
 
@@ -93,6 +107,17 @@ export class UI extends System {
         mousePos.y = camera.top - camera.bottom - mousePos.y;
 
         mousePos.add(new Vector2(camera.left, camera.bottom));
+
+        if (justPressed) {
+            this.focused = null;
+            this.scene.components.forEach(Focusable, (focusable) => {
+                console.log(focusable.getAABB());
+                if (focusable.getAABB().contains(mousePos)) {
+                    this.focused = focusable.entity;
+                    console.log(focusable);
+                }
+            })
+        }
 
         this.scene.components.forEach(Button, (button) => {
             const mesh = button.entity.getComponent(MeshPrimitive);
@@ -135,5 +160,15 @@ export class UI extends System {
                 button.isJustReleased = false;
             }
         });
+    }
+
+    onAfterUpdate(): void {
+        for (const type of this.registered) {
+            this.scene.components.forEach(type, (component) => {
+                if (component instanceof UIRenderableElement) {
+                    component.positionMeshes();
+                }
+            });
+        }
     }
 }

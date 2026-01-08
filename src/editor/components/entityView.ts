@@ -13,7 +13,7 @@ export class EntityView extends EditorComponent implements IEditorComponent {
 
     private root: HTMLDivElement;
     private entity: IEntity | null = null;
-
+    
     constructor(editor: IEditor) {
         super(editor);
 

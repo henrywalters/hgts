@@ -2,10 +2,11 @@ import { BoxGeometry, Euler, Mesh, MeshBasicMaterial, MeshStandardMaterial, Obje
 import { IScene } from "../../core/interfaces/scene";
 import { System } from "../../ecs/system";
 import { OrthographicCamera, PerspectiveCamera } from "../components/camera";
-import { MeshComponent, MeshPrimitive, TextHAlignment, TextMesh } from "../components/mesh";
+import { MeshComponent, MeshPrimitive, TextMesh } from "../components/mesh";
 import { EntityEvents } from "../../core/events";
 import { ComponentCtr } from "../../ecs/interfaces/component";
 import { Smooth } from "../components/smooth";
+import { TextHAlignment } from "../components/ui/element";
 
 export class Renderer extends System {
 
@@ -17,9 +18,6 @@ export class Renderer extends System {
     ];
 
     constructor(scene: IScene) {
-
-        console.log("CREATING RENDERER");
-
         super(scene);
         this.scene.components.register(PerspectiveCamera);
         this.scene.components.register(OrthographicCamera);
@@ -30,22 +28,6 @@ export class Renderer extends System {
         }
 
         this.scene.entityEvents.listen((e) => {
-            if (e.type === EntityEvents.AddComponent) {
-                if (e.component! instanceof MeshComponent) {
-                    const mesh = new Mesh();
-                    this.meshes.set(e.component.id, mesh);
-                    e.component.updateMesh(mesh);
-                    this.scene.scene.add(mesh);
-                }
-            } else if (e.type === EntityEvents.UpdateComponent) {
-                if (e.component! instanceof MeshComponent) {
-                    e.component.updateMesh(this.meshes.get(e.component.id)!);
-                }
-            } else if (e.type === EntityEvents.RemoveComponent) {
-                if (e.component! instanceof MeshComponent) {
-                    this.scene.scene.remove(this.meshes.get(e.component.id)!);
-                }
-            }
 
             if (e.type === EntityEvents.Remove) {
                 for (const type of this.managedComponents) {
@@ -54,7 +36,20 @@ export class Renderer extends System {
                         this.scene.scene.remove(this.meshes.get(component.id)!);
                     }
                 }
+            }
 
+            if (!e.component || !(e.component instanceof MeshComponent)) return;
+
+            if (e.type === EntityEvents.AddComponent) {
+                    const mesh = new Mesh();
+                    this.meshes.set(e.component.id, mesh);
+                    e.component.updateMesh(mesh);
+                    this.scene.scene.add(mesh);
+
+            } else if (e.type === EntityEvents.UpdateComponent) {
+                e.component.updateMesh(this.meshes.get(e.component.id)!);
+            } else if (e.type === EntityEvents.RemoveComponent) {
+                this.scene.scene.remove(this.meshes.get(e.component.id)!);
             }
         });
     }
@@ -120,6 +115,7 @@ export class Renderer extends System {
                 const position = component.entity.position;
 
                 if (component instanceof TextMesh) {
+                    position.y -= component.size / 2;
                     if (component.alignment === TextHAlignment.Center) {
                         position.x -= component.textSize.x / 2;
                     } else if (component.alignment === TextHAlignment.Right) {
