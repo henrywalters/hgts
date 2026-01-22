@@ -16,4 +16,6 @@ export class Button extends UIElement {
     isJustPressed = false;
     isJustReleased = false;
 
+    onClick?: () => void;
+
 }

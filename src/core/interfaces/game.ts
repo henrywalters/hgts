@@ -1,4 +1,4 @@
-import { Clock, WebGLRenderer } from "three";
+import { Clock, Vector2, WebGLRenderer } from "three";
 import { IScene, SceneCtr } from "./scene";
 import EventListenerPool, { EntityEvent, SceneEvent } from "../events";
 import { IInput } from "./input";
@@ -24,6 +24,8 @@ export interface IGame {
     run(): void;
 
     tick(headless: boolean): void;
+
+    getSize(): Vector2;
     
     resize(width: number, height: number): void;
 }

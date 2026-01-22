@@ -26,6 +26,8 @@ export interface IEntity {
 
     getComponent<T extends IComponent>(ctr: ComponentCtr<T>): T | undefined;
 
+    getComponentInChildren<T extends IComponent>(ctr: ComponentCtr<T>): T | undefined;
+
     getComponents(): IComponent[];
     
     removeComponent(component: IComponent): void;

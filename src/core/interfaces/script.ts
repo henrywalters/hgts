@@ -1,7 +1,6 @@
 import { IComponent } from "../../ecs/interfaces/component";
-import { IParameterizable } from "../reflection";
 
-export interface IScript extends IParameterizable {
+export interface IScript {
     onStart(): void;
     onBeforeUpdate(): void;
     onUpdate(dt: number): void;

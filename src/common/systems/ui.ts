@@ -36,26 +36,16 @@ export class UI extends System {
             this.scene.components.register(type);
         }
 
-        document.addEventListener('keyup', (e) => {
-            if (this.focused) {
-                const input = this.focused.getComponent(TextInput);
-                if (input) {
-                    const key = e.key;
-                    if (/^[a-zA-Z0-9\s!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]$/.test(key)) {
-                        input.addChar(e.key);
-                        console.log(input.text);
-                    }
-                }
-            }
-        });
-
         document.addEventListener('keydown', (e) => {
             if (this.focused) {
                 const input = this.focused.getComponent(TextInput);
                 if (input) {
-                    console.log(e.key, e.key === 'Backspace');
                     if (e.key === 'Backspace') {
                         input.delete();
+                    }
+                    const key = e.key;
+                    if (/^[a-zA-Z0-9\s!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]$/.test(key)) {
+                        input.addChar(e.key);
                     }
                 }
             }
@@ -63,7 +53,6 @@ export class UI extends System {
 
         this.scene.entityEvents.listen((e) => {
             if (!e.component || !(e.component instanceof UIRenderableElement)) return;
-
             if (e.type === EntityEvents.AddComponent) {
                 e.component.addMeshes();
             } else if (e.type === EntityEvents.UpdateComponent) {
@@ -111,16 +100,14 @@ export class UI extends System {
         if (justPressed) {
             this.focused = null;
             this.scene.components.forEach(Focusable, (focusable) => {
-                console.log(focusable.getAABB());
                 if (focusable.getAABB().contains(mousePos)) {
                     this.focused = focusable.entity;
-                    console.log(focusable);
                 }
             })
         }
 
         this.scene.components.forEach(Button, (button) => {
-            const mesh = button.entity.getComponent(MeshPrimitive);
+            const mesh = button.entity.getComponent(Container);
             if (mesh) {
                 const aabb = mesh.getAABB();
 

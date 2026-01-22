@@ -7,5 +7,5 @@ export interface IServer extends NetElement {
     wss: WebSocketServer;
     clients: Set<WebSocket>
 
-    emit(key: number, message: INetMessage, ignore?: WebSocket[]): void;
+    emit(message: INetMessage, ignore?: WebSocket[]): void;
 }

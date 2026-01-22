@@ -104,6 +104,8 @@ export class Renderer extends System {
             return;
         }
 
+        camera.update();
+
         camera.camera.position.copy(camera.entity.position);
         camera.camera.quaternion.setFromEuler(new Euler(camera.entity.transform.rotation.x, camera.entity.transform.rotation.y, camera.entity.transform.rotation.z, 'YXZ'))
 

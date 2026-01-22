@@ -1,13 +1,9 @@
 import { ComponentContainer } from "golden-layout";
 import { IEditorComponent } from "../interfaces/editorComponent";
-import { IGame } from "../../core/interfaces/game";
-import { MeshComponent } from "../../common/components/mesh";
-import { BoxGeometry, MeshBasicMaterial } from "three";
-import '@shoelace-style/shoelace/dist/components/tree/tree.js';
 import { EditorComponent } from "./editorComponent";
 import { IEditor } from "../interfaces/editor";
 import { EntityEvents, SceneEvents } from "../../core/events";
-import { IEntity } from "../../ecs/interfaces/entity";
+import { EntityData, IEntity } from "../../ecs/interfaces/entity";
 import { Transform } from "../../common/components/transform";
 
 export class EntityTree extends EditorComponent implements IEditorComponent {
@@ -135,6 +131,23 @@ export class EntityTree extends EditorComponent implements IEditorComponent {
         // @ts-ignore
         button.size='large';
         container.element.appendChild(button);
+
+        const addFromPrefab = document.createElement('sl-button');
+        addFromPrefab.innerText = 'Add From Prefab';
+        addFromPrefab.addEventListener('click', async (e) => {
+            // @ts-ignore
+            const [fileHandle] = await window.showOpenFilePicker();
+            const file = await fileHandle.getFile();
+            const text = await file.text();
+            const data = JSON.parse(text) as EntityData;
+            this.editor.game.currentScene!.entityEvents.emit({
+                type: EntityEvents.Create,
+                entity: this.editor.game.currentScene!.addEntityFromPrefab(data, `Entity_${this.index}`),
+            })
+        })
+
+        container.element.appendChild(addFromPrefab);
+
         container.element.appendChild(this.tree);
 
         this.renderTree();

@@ -12,10 +12,19 @@ export enum Types {
     Enum = 'enum',
     Script = 'script',
     Entity = 'entity',
+    Class = 'class',
+    Array = 'array',
+}
+
+export interface Ctr<T> {
+    new (): T;
+    name: string;
 }
 
 export interface Field {
     type: Types;
+    subType?: Types;
+    ctr?: Ctr<any>;
     description?: string;
     defaultValue?: any;
     label?: string;
@@ -23,16 +32,63 @@ export interface Field {
     readonly?: boolean;
 }
 
-export interface IParameterizable {
-    setParam(name: string, field: Field): void;
-    getParams(): Map<string, Field>;
+// export interface IParameterizable {
+//     setParam(name: string, field: Field): void;
+//     getParams(): Map<string, Field>;
+// }
+
+// export function Param(field: Field) {
+//     return function (_: unknown, context: ClassFieldDecoratorContext) {
+//         context.addInitializer(function() {
+//             (this as IParameterizable).setParam(context.name as string, field);
+//         })
+//     }
+// }
+
+class _Reflection {
+    private fields: Map<string, Map<string, Field>> = new Map();
+
+    private traverse(obj: any, cb: (name: string) => void): void {
+
+        let proto = obj.constructor;
+        
+        while (proto && proto.name) {
+            cb(proto.name);
+            proto = Object.getPrototypeOf(proto);
+            
+            if (proto.name === 'Object' || proto.name === 'Function' || proto.name === '') {
+                break;
+            }
+        }
+    }
+
+    setParam(obj: any, name: string, field: Field) {
+        const key = obj.constructor.name;
+        if (!this.fields.has(key)) {
+            this.fields.set(key, new Map<string, Field>());
+        }
+        this.fields.get(key)!.set(name, field);
+    }
+
+    getParams(obj: any): Map<string, Field> {
+        const out = new Map<string, Field>();
+        this.traverse(obj, (name) => {
+            if (this.fields.has(name)) {
+                for (const [fieldName, field] of this.fields.get(name)!) {
+                    out.set(fieldName, field);
+                }
+            }
+        })
+        return out;
+    }
 }
 
+export const Reflection = new _Reflection();
+
 export function Param(field: Field) {
-    return function (_: unknown, context: ClassFieldDecoratorContext) {
-        context.addInitializer(function() {
-            (this as IParameterizable).setParam(context.name as string, field);
-        })
+    return function (target: any, propertyKey: string) {
+        Reflection.setParam(target, propertyKey, field);
+        // (target as IParameterizable).setParam(propertyKey, field);
     }
 }
 

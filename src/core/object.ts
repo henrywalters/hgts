@@ -1,5 +1,6 @@
+import { generateId } from "../utils/id";
+
 export class HGObject {
-    private static currentId = 0;
 
     private _id: number;
     public get id() { return this._id };
@@ -7,10 +8,8 @@ export class HGObject {
     constructor(id?: number) {
         if (id) {
             this._id = id;
-            HGObject.currentId = Math.max(id, HGObject.currentId);
         } else {
-            this._id = HGObject.currentId;
+            this._id = generateId(12);
         }
-        HGObject.currentId += 1;
     }
 }

@@ -32,12 +32,15 @@ export interface IScene {
     onResize(width: number, height: number): void;
 
     removeEntity(id: number): void;
+    addEntityFromPrefab(prefab: EntityData, name?: string, id?: number, parentId?: number): IEntity;
     addEntity(name?: string, id?: number, parentId?: number): IEntity;
     changeEntityOwner(id: number, parentId?: number): void;
     getEntity(id: number): IEntity | null;
     addSystem<T extends ISystem>(ctr: SystemCtr<T>): ISystem;
     initialize(): void;
     update(dt: number): void;
+
+    forEachEntity(cb: (entity: IEntity) => void): void;
 }
 
 export type SceneCtr<T extends IScene> = {

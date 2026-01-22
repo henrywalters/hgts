@@ -168,13 +168,13 @@ export function makeEntitySelectInput(scene: IScene, label: string, value: numbe
 
     const input = document.createElement('sl-select');
 
-    for (const entity of scene.entities) {
+    scene.forEachEntity((entity) => {
         const opt = document.createElement('sl-option');
         opt.setAttribute('value', entity.id.toFixed(0));
         opt.innerHTML = entity.name;
         input.appendChild(opt);
-    }
-
+    })
+    
     input.addEventListener('sl-input', (e) => {
         // @ts-ignore
         console.log(input.value);

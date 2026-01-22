@@ -140,6 +140,7 @@ export class Keyboard extends InputDevice implements IInputDevice {
 export class Mouse extends InputDevice implements IInputDevice  {
 
     private _tmpPos = new Vector2();
+    private _tmpWheel = new Vector2();
 
     private _pos = new Vector2();
     private _delta = new Vector2();
@@ -148,7 +149,7 @@ export class Mouse extends InputDevice implements IInputDevice  {
     public get delta() { return this._delta; }
     
     public buttons = [Buttons.MouseLeft, Buttons.MouseMiddle, Buttons.MouseRight];
-    public axes = [Axes.MouseDelta, Axes.MousePosition];
+    public axes = [Axes.MouseDelta, Axes.MousePosition, Axes.MouseWheel];
 
     register(element: HTMLElement): void {
 
@@ -158,10 +159,19 @@ export class Mouse extends InputDevice implements IInputDevice  {
 
         this.axesMap.set(Axes.MouseDelta, new Vector2());
         this.axesMap.set(Axes.MousePosition, new Vector2());
+        this.axesMap.set(Axes.MouseWheel, new Vector2());
 
         element.addEventListener('contextmenu', (e) => {
             e.preventDefault();
         });
+
+        element.addEventListener('mousewheel', (e) => {
+            // @ts-ignore
+            const x = e.deltaX === 0 ? 0 : Math.sign(e.deltaX);
+            // @ts-ignore
+            const y = e.deltaY === 0 ? 0 : Math.sign(e.deltaY);
+            this._tmpWheel = new Vector2(x, y);
+        })
 
         element.addEventListener('mouseup', (e) => {
             switch(e.button) {
@@ -201,6 +211,8 @@ export class Mouse extends InputDevice implements IInputDevice  {
     update(): void {
         this._delta.subVectors(this._tmpPos, this.pos);
         this._pos.copy(this._tmpPos);
+        this.axesMap.set(Axes.MouseWheel, this._tmpWheel);
+        this._tmpWheel = new Vector2();
         this.axesMap.set(Axes.MouseDelta, this.delta);
         this.axesMap.set(Axes.MousePosition, this.pos);
     }

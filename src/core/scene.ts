@@ -12,7 +12,7 @@ import EventListenerPool, { EntityEvent, EntityEvents } from "./events";
 import { Script, ScriptRegistry } from "./script";
 import { Behavior } from "../common/components/behavior";
 import { IScript } from "./interfaces/script";
-import { deserializeScene, serializeScene } from "./serialization";
+import { deserializeEntity, deserializeScene, serializeScene } from "./serialization";
 
 export class Scene implements IScene {
 
@@ -74,6 +74,10 @@ export class Scene implements IScene {
             this.removeEntity(child);
         }
 
+        for (const component of entity.getComponents()) {
+            entity.removeComponent(component);
+        }
+
         const list = entity.parent ? entity.parent.children : this.entities;
         const index = list.findIndex((value) => value.id === entity.id);
         if (index >= 0) {
@@ -86,7 +90,7 @@ export class Scene implements IScene {
         }
     }
 
-    public addEntity(name: string = "", id?: number, parentId?: number) {
+    public addEntity(name: string = "", id?: number, parentId?: number): IEntity {
         const entity = new Entity(name, this, id);
         if (parentId) {
             const parent = this.getEntity(parentId);
@@ -100,6 +104,12 @@ export class Scene implements IScene {
         }
 
         this._entityMap.set(entity.id, entity);
+        return entity;
+    }
+
+    public addEntityFromPrefab(prefab: EntityData, name: string = "", id?: number, parentId?: number) {
+        const entity = this.addEntity(name, id, parentId);
+        deserializeEntity(entity, this, prefab);
         return entity;
     }
 
@@ -121,15 +131,12 @@ export class Scene implements IScene {
             return;
         }
 
-        console.log(entity);
-
         const list = entity.parent ? entity.parent.children : this.entities;
         const index = list.findIndex((other) => other.id === entity.id);
         list.splice(index, 1);
 
         if (parentId) {
             const parent = this.getEntity(parentId);
-            console.log(parent);
             if (!parent) {
                 console.error(`Entity #${parentId} does not exist`);
                 return;
@@ -171,6 +178,19 @@ export class Scene implements IScene {
 
         for (const system of this.systems) {
             system.onAfterUpdate();
+        }
+    }
+
+    forEachEntity(cb: (entity: IEntity) => void): void {
+        const traverse = (parent: IEntity) => {
+            cb(parent);
+            for (const child of parent.children) {
+                traverse(child);
+            }
+        }
+
+        for (const entity of this.entities) {
+            traverse(entity);
         }
     }
 }

@@ -1,4 +1,4 @@
-import { Clock, WebGLRenderer } from "three";
+import { Clock, Vector2, WebGLRenderer } from "three";
 import { IScene, SceneCtr } from "./interfaces/scene";
 import { IGame } from "./interfaces/game";
 import { Input } from "./input";
@@ -118,6 +118,12 @@ export class Game implements IGame {
         }
 
         this.activateScene(manifest.startScene);
+    }
+
+    public getSize() {
+        const size = new Vector2();
+        this.renderer.getSize(size);
+        return size;
     }
 
     public addScene<T extends IScene>(name: string, scene: SceneCtr<T>): T {

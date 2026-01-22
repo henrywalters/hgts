@@ -52,13 +52,16 @@ export class OrthographicCamera extends Component implements ICameraComponent {
     @Param({type: Types.Float})
     far: number = 1000;
 
+    @Param({type: Types.Float})
+    zoom: number = 1;
+
     update() {
         this.camera.far = this.far;
         this.camera.near = this.near;
-        this.camera.left = this.left;
-        this.camera.right = this.right;
-        this.camera.top = this.top
-        this.camera.bottom = this.bottom;
+        this.camera.left = this.left / this.zoom;
+        this.camera.right = this.right / this.zoom;
+        this.camera.top = this.top / this.zoom;
+        this.camera.bottom = this.bottom / this.zoom;
         this.camera.updateProjectionMatrix();
     }
 }

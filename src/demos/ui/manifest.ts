@@ -18,7 +18,9 @@ export const UIManifest: IManifest = {
     scripts: [],
     scenes: {
         menu: {
-            data: MenuScene,
+            data: {
+                entities: [],
+            },
             ctr: UIMenu,
         }
     },

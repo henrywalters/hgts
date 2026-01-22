@@ -3,7 +3,7 @@ import { NetMessage, NetMessages } from './messages';
 import { INetAddress, NetEvent, NetEvents } from './interfaces/net';
 import { NetElement } from './net';
 import { IServer } from './interfaces/server';
-import { INetMessages } from './interfaces/messages';
+import { INetMessage, INetMessages } from './interfaces/messages';
 
 export class Server extends NetElement implements IServer {
     private _wss: WebSocketServer;
@@ -11,6 +11,8 @@ export class Server extends NetElement implements IServer {
 
     public get wss() { return this._wss; }
     public get clients() { return this._clients; }
+
+    public onMessage: (msg: INetMessage) => void = (_) => {};
 
     constructor(address: INetAddress, client: INetMessages, server: INetMessages) {
         super(address, client, server);
@@ -20,7 +22,7 @@ export class Server extends NetElement implements IServer {
         console.log(`Websocket Server running on port: ${this.address.port}`);
 
         this.wss.on('connection', (ws) => {
-            console.log("Client Connected");
+            console.log(`Client Connected to port ${this.address.port}`);
             this.clients.add(ws);
 
             this.events.push({
@@ -29,15 +31,18 @@ export class Server extends NetElement implements IServer {
             });
 
             ws.on('message', (data: Buffer) => {
-                const array = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer;
+                const buffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer;
+                const message = this.clientMessages.read(buffer);
+                this.onMessage(message);
                 this.messages.push({
                     socket: ws, 
-                    message: this.clientMessages.read(array)
+                    message,
+                    buffer: data,
                 });
             });
 
             ws.on('close', () => {
-                console.log(`Client disconnected`);
+                console.log(`Client disconnected from port ${this.address.port}`);
                 this.events.push({
                     type: NetEvents.Disconnected,
                     socket: ws,
@@ -47,7 +52,7 @@ export class Server extends NetElement implements IServer {
         });
     }
 
-    emit(key: number, message: NetMessage, ignore: WebSocket[] = []) {
+    emit(message: INetMessage, ignore: WebSocket[] = []) {
         for (const client of this.clients) {
             if (ignore.indexOf(client) !== -1) continue;
             client.send(this.serverMessages.write(message));

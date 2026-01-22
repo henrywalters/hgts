@@ -3,6 +3,7 @@ import { Vector2 } from "three";
 export enum Axes {
     MouseDelta,
     MousePosition,
+    MouseWheel,
     KeyboardWASD,
     KeyboardDirectional,
 }

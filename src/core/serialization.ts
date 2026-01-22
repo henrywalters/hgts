@@ -3,7 +3,7 @@ import { ComponentData } from "../ecs/interfaces/component";
 import { EntityData, IEntity } from "../ecs/interfaces/entity";
 import { EntityEvents } from "./events";
 import { IScene, SceneData } from "./interfaces/scene";
-import { serialize, deserialize } from "./reflection";
+import { serialize, deserialize, Reflection } from "./reflection";
 import { ScriptRegistry } from "./script";
 
 export function serializeEntity(entity: IEntity): EntityData {
@@ -21,14 +21,14 @@ export function serializeEntity(entity: IEntity): EntityData {
             params: {}
         };
 
-        for (const [key, param] of component.getParams()) {
+        for (const [key, param] of Reflection.getParams(component)) {
             // @ts-ignore
             comp.params[key] = serialize(param, component[key]);
         }
 
         if (component instanceof Behavior) {
             const script = ScriptRegistry.get(component.scriptName, component)!;
-            for (const [key, param] of script.getParams()) {
+            for (const [key, param] of Reflection.getParams(script)) {
                 // @ts-ignore
                 comp.params[key] = serialize(param, script[key]);
             }
@@ -56,11 +56,10 @@ export function serializeScene(scene: IScene): SceneData {
     return data;
 }
 
-export function deserializeEntity(scene: IScene, data: EntityData, parentId?: number) {
-    const entity = scene.addEntity(data.name, data.id, parentId);
+export function deserializeEntity(entity: IEntity, scene: IScene, data: EntityData) {
     for (const componentData of data.components) {
         const component = scene.components.addByName(entity, componentData.name);
-        const params = component.getParams();
+        const params = Reflection.getParams(component);
         for (const key in componentData.params) {
             if (!params.has(key)) {
                 continue;
@@ -72,7 +71,8 @@ export function deserializeEntity(scene: IScene, data: EntityData, parentId?: nu
 
         if (component instanceof Behavior) {
             const script = ScriptRegistry.get(component.scriptName, component);
-            const scriptParams = script!.getParams();
+            if (!script) continue;
+            const scriptParams = Reflection.getParams(script);
             for (const key in componentData.params) {
                 if (!scriptParams.has(key)) continue;
                 // @ts-ignore
@@ -87,15 +87,15 @@ export function deserializeEntity(scene: IScene, data: EntityData, parentId?: nu
         });
     }
 
-    console.log(data.children);
-
     for (const child of data.children) {
-        deserializeEntity(scene, child, entity.id);
+        const childEntity = scene.addEntity(child.name, child.id, entity.id);
+        deserializeEntity(childEntity, scene, child);
     }
 }
 
 export function deserializeScene(scene: IScene, data: SceneData) {
     for (const entityData of data.entities) {
-        deserializeEntity(scene, entityData);
+        const entity = scene.addEntity(entityData.name, entityData.id);
+        deserializeEntity(entity, scene, entityData);
     }
 }

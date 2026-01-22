@@ -4,10 +4,11 @@ import { EditorComponent } from "./editorComponent";
 import { IEditor } from "../interfaces/editor";
 import { IEntity } from "../../ecs/interfaces/entity";
 import { makeInput, makeSimpleInput } from "../inputs";
-import { Types } from "../../core/reflection";
+import { Reflection, Types } from "../../core/reflection";
 import { EntityEvents, SceneEvents } from "../../core/events";
 import { ScriptRegistry } from "../../core/script";
 import { IScene } from "../../core/interfaces/scene";
+import { serializeEntity } from "../../core/serialization";
 
 export class EntityView extends EditorComponent implements IEditorComponent {
 
@@ -65,6 +66,11 @@ export class EntityView extends EditorComponent implements IEditorComponent {
 
         if (!this.entity) return;
 
+        const id = document.createElement('p');
+        id.innerText = `ID: #${this.entity.id}`;
+
+        this.root.appendChild(id);
+
         const removeBtn = document.createElement('sl-button');
         removeBtn.innerText = 'Remove Entity';
         
@@ -74,7 +80,25 @@ export class EntityView extends EditorComponent implements IEditorComponent {
             this.renderEntity();
         });
 
+        const saveBtn = document.createElement('sl-button');
+        saveBtn.innerText = 'Save as Prefab';
+
+        saveBtn.addEventListener('click', async (e) => {
+                // @ts-ignore
+                const file = await window.showSaveFilePicker({
+                    suggestedName: 'scene.json',
+                    types: [{
+                        description: 'JSON Files',
+                        accept: { 'text/plain': ['.json']}
+                    }],
+                });
+                const writeable = await file.createWritable();
+                await writeable.write(JSON.stringify(serializeEntity(this.entity!), null, 2));
+                await writeable.close();
+        })
+
         this.root.appendChild(removeBtn);
+        this.root.appendChild(saveBtn);
 
         const label = document.createElement('h3');
         label.innerText = 'Entity Name';
@@ -123,7 +147,7 @@ export class EntityView extends EditorComponent implements IEditorComponent {
 
             div.appendChild(header);
 
-            for (const [key, field] of component.getParams()) {
+            for (const [key, field] of Reflection.getParams(component)) {
                 div.appendChild(makeInput(this.editor.game.currentScene as IScene, component, key, field, (value) => {
                     this.editor.game.currentScene!.entityEvents.emit({
                         type: EntityEvents.UpdateComponent,
@@ -136,7 +160,7 @@ export class EntityView extends EditorComponent implements IEditorComponent {
                     // @ts-ignore
                     const script = ScriptRegistry.get(component[key] as string, component);
                     if (script) {
-                        for (const [scriptKey, scriptField] of script.getParams()) {
+                        for (const [scriptKey, scriptField] of Reflection.getParams(script)) {
                             div.appendChild(makeInput(this.editor.game.currentScene as IScene, script, scriptKey, scriptField, (value) => {
                                 this.editor.game.currentScene!.entityEvents.emit({
                                     type: EntityEvents.UpdateComponent,

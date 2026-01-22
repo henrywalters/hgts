@@ -13,6 +13,9 @@ import { ClientDemo } from "../demos/server/client";
 import { PongClientManifest } from "../demos/pongMultiplayer/client";
 import { Vector2 } from "three";
 import { UIManifest } from "../demos/ui/manifest";
+import { UI } from "../common/systems/ui";
+import { Renderer } from "../common/systems/renderer";
+import { TestComponent } from "./testComponent";
 
 export class Editor implements IEditor {
     
@@ -24,12 +27,33 @@ export class Editor implements IEditor {
 
     public get game(): IGame { return this._game; }
 
-    constructor(container: HTMLElement) {
+    constructor(container: HTMLElement, game: Game) {
 
         console.log("New Game");
 
         //this._game = new Game(new PongClientManifest());
-        this._game = new Game(UIManifest);
+        //this._game = game;
+
+        this._game = new Game({
+            systems: [
+                UI,
+                Renderer,
+            ],
+            components: [
+                TestComponent,
+            ],
+            scripts: [],
+            scenes: {
+                runtime: {
+                    data: {
+                        entities: []
+                    },
+                    ctr: Runtime,
+                }
+            },
+            assets: {},
+            startScene: "runtime",
+        })
 
         this.config = {
             root: {

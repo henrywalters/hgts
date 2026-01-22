@@ -31,7 +31,7 @@ export class ServerRuntime extends Scene {
                 const left = new PlayerLeft();
                 left.serverId = entityId;
 
-                this.game.server.emit(ServerMessageTypes.PlayerLeft, left);
+                this.game.server.emit(left);
             }
         })
 
@@ -78,7 +78,7 @@ export class ServerRuntime extends Scene {
                 joined.serverId = reply.serverId;
                 joined.color = reply.color;
 
-                this.game.server.emit(ServerMessageTypes.PlayerJoined, joined, [message.socket!]);
+                this.game.server.emit(joined, [message.socket!]);
             } else if (message.message.type === ClientMessageTypes.Move) {
                 const move = message.message as PlayerMove;
 

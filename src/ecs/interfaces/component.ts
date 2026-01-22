@@ -1,4 +1,3 @@
-import { Field, IParameterizable } from "../../core/reflection";
 import { IEntity } from "./entity";
 
 export interface ComponentData {
@@ -7,7 +6,7 @@ export interface ComponentData {
     params: {[key: string]: any};
 }
 
-export interface IComponent extends IParameterizable {
+export interface IComponent {
     id: number;
     entity: IEntity;
 

@@ -67,14 +67,11 @@ export class Text extends UIRenderableElement {
     }
 
     addMeshes(): void {
-        console.log("Add Meshes");
         if (!Assets.fonts.has(this.font)) return;
 
         const font = Assets.fonts.get(this.font);
 
         const lines = this.splitText(font);
-
-        console.log(lines);
 
         for (const line of lines) {
             const mesh = new Mesh();
@@ -87,7 +84,7 @@ export class Text extends UIRenderableElement {
             this.entity.scene.scene.add(mesh);
         }
 
-        console.log(this.meshes.length);
+        this.positionMeshes();
     }
 
     positionMeshes(): void {

@@ -81,4 +81,12 @@ export class Entity extends HGObject implements IEntity {
     getComponent<T extends IComponent>(ctr: ComponentCtr<T>): T | undefined {
         return this.scene.components.get(this, ctr);
     }
+
+    getComponentInChildren<T extends IComponent>(ctr: ComponentCtr<T>): T | undefined {
+        for (const child of this.children) {
+            const component = child.getComponent(ctr);
+            if (component) return component;
+        }
+        return void 0;
+    }
 }

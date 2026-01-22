@@ -6,8 +6,6 @@ import { EntityEvents } from "../core/events";
 
 export class Component extends HGObject implements IComponent {
 
-    private _fields: Map<string, Field> = new Map();
-
     private _entity: IEntity;
 
     public get entity() { return this._entity; }
@@ -24,16 +22,6 @@ export class Component extends HGObject implements IComponent {
             component: this,
         });
     }
-
-    setParam(name: string, field: Field): void {
-        this._fields.set(name, field);
-    }
-
-    getParams(): Map<string, Field> {
-        return this._fields;
-    }
-
-    
 }
 
 export class ComponentPool<T extends IComponent> implements IComponentPool<T> {

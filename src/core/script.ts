@@ -13,6 +13,10 @@ export class Script implements IScript {
 
     public get entity() { return this._entity; }
 
+    public get scene() { return this._entity.scene; }
+
+    public get input() { return this.game.input; }
+
     constructor(component: IComponent) {
         this._entity = component.entity;
     }
