@@ -1,4 +1,4 @@
-import { BoxGeometry, Euler, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, OrthographicCamera as Orthographic, PlaneGeometry, SphereGeometry, Scene as ThreeScene, Vector3 } from "three";
+import { BoxGeometry, Color, Euler, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, OrthographicCamera as Orthographic, PlaneGeometry, SphereGeometry, Scene as ThreeScene, Vector3 } from "three";
 import { IScene } from "../../core/interfaces/scene";
 import { System } from "../../ecs/system";
 import { OrthographicCamera, PerspectiveCamera } from "../components/camera";
@@ -6,7 +6,7 @@ import { MeshComponent, MeshPrimitive, TextMesh } from "../components/mesh";
 import { EntityEvents } from "../../core/events";
 import { ComponentCtr } from "../../ecs/interfaces/component";
 import { Smooth } from "../components/smooth";
-import { TextHAlignment } from "../components/ui/element";
+import { TextHAlignment } from "../components/ui/alignment";
 
 export class Renderer extends System {
 
@@ -94,6 +94,10 @@ export class Renderer extends System {
                 smooth.entity.transform.position.add(change);
             }
         })
+    }
+
+    onBeforeUpdate(): void {
+        this.scene.game.renderer.clear();
     }
 
     onAfterUpdate(): void {

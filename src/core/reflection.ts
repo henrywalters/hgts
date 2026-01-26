@@ -1,5 +1,4 @@
-import { Color, Vector2, Vector3 } from "three";
-import { IComponent } from "../ecs/interfaces/component";
+import { Color as TColor, Vector2 as TVector2, Vector3 as TVector3 } from "three";
 
 export enum Types {
     String = 'string',
@@ -92,6 +91,54 @@ export function Param(field: Field) {
     }
 }
 
+export function String() {
+    return Param({type: Types.String});
+}
+
+export function Int() {
+    return Param({type: Types.Int});
+}
+
+export function Float() {
+    return Param({type: Types.Float});
+}
+
+export function Boolean() {
+    return Param({type: Types.Boolean});
+}
+
+export function Vector2() {
+    return Param({type: Types.Vector2});
+}
+
+export function Vector3() {
+    return Param({type: Types.Vector3});
+}
+
+export function Color() {
+    return Param({type: Types.Color});
+}
+
+export function Enum(en: Object) {
+    return Param({type: Types.Enum, enum: en});
+}
+
+export function Script() {
+    return Param({type: Types.Script});
+}
+
+export function Entity() {
+    return Param({type: Types.Entity});
+}
+
+export function Class(ctr: Ctr<any>) {
+    return Param({type: Types.Class, ctr});
+}
+
+export function Array(arrType: Types, ctr?: Ctr<any>) {
+    return Param({type: Types.Array, subType: arrType, ctr});
+}
+
 export function serialize(field: Field, value: any): any {
     if (field.type === Types.Vector3) {
         return [value.x, value.y, value.z];
@@ -106,11 +153,11 @@ export function serialize(field: Field, value: any): any {
 
 export function deserialize(field: Field, value: any): any {
     if (field!.type === Types.Vector3) {
-        return new Vector3(value[0], value[1], value[2]);
+        return new TVector3(value[0], value[1], value[2]);
     } else if (field!.type === Types.Vector2) {
-        return new Vector2(value[0], value[1]);
+        return new TVector2(value[0], value[1]);
     } else if (field!.type === Types.Color) {
-        return new Color(value[0], value[1], value[2]);
+        return new TColor(value[0], value[1], value[2]);
     } else {
         return value;
     }

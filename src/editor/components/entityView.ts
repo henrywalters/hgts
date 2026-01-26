@@ -148,6 +148,8 @@ export class EntityView extends EditorComponent implements IEditorComponent {
             div.appendChild(header);
 
             for (const [key, field] of Reflection.getParams(component)) {
+
+                console.log(key, field);
                 div.appendChild(makeInput(this.editor.game.currentScene as IScene, component, key, field, (value) => {
                     this.editor.game.currentScene!.entityEvents.emit({
                         type: EntityEvents.UpdateComponent,

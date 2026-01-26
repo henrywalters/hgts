@@ -109,7 +109,7 @@ export class Scene implements IScene {
 
     public addEntityFromPrefab(prefab: EntityData, name: string = "", id?: number, parentId?: number) {
         const entity = this.addEntity(name, id, parentId);
-        deserializeEntity(entity, this, prefab);
+        deserializeEntity(entity, this, prefab, false);
         return entity;
     }
 

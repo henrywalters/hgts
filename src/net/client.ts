@@ -2,6 +2,7 @@ import { INetAddress, NetEvents } from "./interfaces/net";
 import { IClient } from "./interfaces/client";
 import { NetElement } from "./net";
 import { INetMessage, INetMessages } from "./interfaces/messages";
+import { NetMessage } from "./messages";
 
 export class Client extends NetElement implements IClient {
 
@@ -67,5 +68,9 @@ export class Client extends NetElement implements IClient {
             console.log("Failed to connect to socket");
             setTimeout(() => this.connect(), this.connectionDelay);
         }
+    }
+
+    send(msg: NetMessage): void {
+        this.socket.send(this.clientMessages.write(msg));
     }
 }

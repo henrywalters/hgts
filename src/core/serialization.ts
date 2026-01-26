@@ -56,7 +56,7 @@ export function serializeScene(scene: IScene): SceneData {
     return data;
 }
 
-export function deserializeEntity(entity: IEntity, scene: IScene, data: EntityData) {
+export function deserializeEntity(entity: IEntity, scene: IScene, data: EntityData, preserveIds = true) {
     for (const componentData of data.components) {
         const component = scene.components.addByName(entity, componentData.name);
         const params = Reflection.getParams(component);
@@ -88,7 +88,14 @@ export function deserializeEntity(entity: IEntity, scene: IScene, data: EntityDa
     }
 
     for (const child of data.children) {
-        const childEntity = scene.addEntity(child.name, child.id, entity.id);
+        let childEntity: IEntity;
+        if (preserveIds) {
+            childEntity = scene.addEntity(child.name, child.id, entity.id);
+        } else {
+            childEntity = scene.addEntity(child.name);
+            scene.changeEntityOwner(childEntity.id, entity.id);
+        }
+        
         deserializeEntity(childEntity, scene, child);
     }
 }

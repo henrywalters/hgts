@@ -63,6 +63,7 @@ export class Game implements IGame {
             console.log("Running in headless mode");
         } else {
             this._renderer = new WebGLRenderer();
+            this.renderer.autoClear = false;
             this._input = new Input(this.renderer.domElement);
             const gl = this.renderer.getContext();
 

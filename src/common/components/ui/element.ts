@@ -1,4 +1,4 @@
-import { Mesh, Vector2 } from "three";
+import { Mesh, Scene, Vector2 } from "three";
 import { Param, Types } from "../../../core/reflection";
 import { Component } from "../../../ecs/component";
 import { AABB } from "../../../utils/math";
@@ -6,24 +6,7 @@ import { UI } from "../../systems/ui";
 import { clamp } from "three/src/math/MathUtils.js";
 import { EntityEvents } from "../../../core/events";
 import { MeshPrimitive } from "../mesh";
-
-export enum TextHAlignment {
-    Left = 'Left',
-    Center = 'Center',
-    Right = 'Right',
-}
-
-export enum AnchorAlignment {
-    TopLeft = 'TopLeft',
-    TopCenter = 'TopCenter',
-    TopRight = 'TopRight',
-    Left = 'Left',
-    Center = 'Center',
-    Right = 'Right',
-    BottomLeft = 'BottomLeft',
-    BottomCenter = 'BottomCenter',
-    BottomRight = 'BottomRight',
-}
+import { AnchorAlignment } from "./alignment";
 
 export function getAnchorPosition(size: Vector2, parentSize: Vector2, alignment: AnchorAlignment): Vector2 {
     const center = parentSize.clone().multiplyScalar(0.5);
@@ -169,15 +152,15 @@ export class UIElement extends Component {
 }
 
 export abstract class UIRenderableElement extends UIElement {
-    abstract addMeshes(): void;
+    abstract addMeshes(scene: Scene): void;
 
-    abstract positionMeshes(): void;
+    abstract positionMeshes(scene: Scene): void;
 
-    abstract updateMeshes(): void;
+    abstract updateMeshes(scene: Scene): void;
 
-    removeMeshes() {
+    removeMeshes(scene: Scene) {
         for (const mesh of this.meshes) {
-            this.entity.scene.scene.remove(mesh);
+            scene.remove(mesh);
         }
         this.meshes = [];
     }

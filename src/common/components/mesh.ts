@@ -4,7 +4,7 @@ import { Param, Types } from "../../core/reflection";
 import { TextGeometry } from "three/examples/jsm/Addons.js";
 import { Assets } from "../../core/assets";
 import { AABB } from "../../utils/math";
-import { TextHAlignment } from "./ui/element";
+import { TextHAlignment } from "./ui/alignment";
 
 export abstract class MeshComponent extends Component {
     abstract updateMesh(mesh: Mesh): void;

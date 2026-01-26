@@ -32,28 +32,28 @@ export class Editor implements IEditor {
         console.log("New Game");
 
         //this._game = new Game(new PongClientManifest());
-        //this._game = game;
+        this._game = game;
 
-        this._game = new Game({
-            systems: [
-                UI,
-                Renderer,
-            ],
-            components: [
-                TestComponent,
-            ],
-            scripts: [],
-            scenes: {
-                runtime: {
-                    data: {
-                        entities: []
-                    },
-                    ctr: Runtime,
-                }
-            },
-            assets: {},
-            startScene: "runtime",
-        })
+        // this._game = new Game({
+        //     systems: [
+        //         UI,
+        //         Renderer,
+        //     ],
+        //     components: [
+        //         TestComponent,
+        //     ],
+        //     scripts: [],
+        //     scenes: {
+        //         runtime: {
+        //             data: {
+        //                 entities: []
+        //             },
+        //             ctr: Runtime,
+        //         }
+        //     },
+        //     assets: {},
+        //     startScene: "runtime",
+        // })
 
         this.config = {
             root: {

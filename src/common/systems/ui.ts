@@ -1,15 +1,14 @@
-import { Euler, Mesh, Vector2, Vector3 } from "three";
+import { Euler, Mesh, OrthographicCamera, Scene, Vector2, Vector3 } from "three";
 import { Axes, Buttons } from "../../core/interfaces/input";
 import { IScene } from "../../core/interfaces/scene";
 import { System } from "../../ecs/system";
-import { OrthographicCamera } from "../components/camera";
 import { MeshPrimitive } from "../components/mesh";
 import { Button } from "../components/ui/button";
 import { ComponentCtr } from "../../ecs/interfaces/component";
 import { Container } from "../components/ui/container";
 import { getAnchorPosition, UIElement, UIRenderableElement, UIUnit } from "../components/ui/element";
 import { EntityEvents } from "../../core/events";
-import { TextInput } from "../components/ui/textInput";
+import { TextInput, TextInputEvents } from "../components/ui/textInput";
 import { IEntity } from "../../ecs/interfaces/entity";
 import { Focusable } from "../components/ui/focusable";
 import { clamp } from "three/src/math/MathUtils.js";
@@ -18,6 +17,9 @@ import { Text } from "../components/ui/text";
 export class UI extends System {
 
     private meshes: Map<number, Mesh[]> = new Map();
+
+    private uiScene = new Scene();
+    private camera = new OrthographicCamera();
 
     private focused: IEntity | null = null;
 
@@ -40,12 +42,25 @@ export class UI extends System {
             if (this.focused) {
                 const input = this.focused.getComponent(TextInput);
                 if (input) {
+
+                    if (!this.focused.getComponent(Focusable)!.focused) {
+                        this.focused = null;
+                        return;
+                    }
+
                     if (e.key === 'Backspace') {
                         input.delete();
+                        input.events.emit(TextInputEvents.Delete);
                     }
+
+                    if (e.key === 'Enter') {
+                        input.events.emit(TextInputEvents.Enter);
+                    }
+
                     const key = e.key;
                     if (/^[a-zA-Z0-9\s!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]$/.test(key)) {
                         input.addChar(e.key);
+                        input.events.emit(TextInputEvents.NewCharacter);
                     }
                 }
             }
@@ -54,29 +69,14 @@ export class UI extends System {
         this.scene.entityEvents.listen((e) => {
             if (!e.component || !(e.component instanceof UIRenderableElement)) return;
             if (e.type === EntityEvents.AddComponent) {
-                e.component.addMeshes();
+                e.component.addMeshes(this.uiScene);
             } else if (e.type === EntityEvents.UpdateComponent) {
-                e.component.updateMeshes();
+                e.component.updateMeshes(this.uiScene);
             } else if (e.type === EntityEvents.RemoveComponent) {
-                e.component.removeMeshes();
+                e.component.removeMeshes(this.uiScene);
             }
         })
     }
-
-    private findCamera(): OrthographicCamera | null {
-    
-            let camera: OrthographicCamera | null = null;
-    
-            this.scene.components.forEach(OrthographicCamera, (cam) => {
-                if (camera !== null) {
-                    console.warn("Only one camera is used at once");
-                    return;
-                }
-                camera = cam;
-            });
-    
-            return camera;
-        }
 
     onBeforeUpdate(): void {
 
@@ -86,22 +86,30 @@ export class UI extends System {
             });
         }
 
+        const size = this.scene.game.getSize();
+        this.camera.top = size.y / 2;
+        this.camera.bottom = -size.y / 2;
+        this.camera.left = -size.x / 2;
+        this.camera.right = size.x / 2;
+        this.camera.position.z = 100;
+        this.camera.updateProjectionMatrix();
+
         let mousePos = this.scene.game.input.getAxis(Axes.MousePosition);
-        const camera = this.findCamera();
         const pressed = this.scene.game.input.getButton(Buttons.MouseLeft);
         const justPressed = this.scene.game.input.getButtonPressed(Buttons.MouseLeft);
 
-        if (!camera) return;
+        mousePos.y = this.camera.top - this.camera.bottom - mousePos.y;
 
-        mousePos.y = camera.top - camera.bottom - mousePos.y;
-
-        mousePos.add(new Vector2(camera.left, camera.bottom));
+        mousePos.add(new Vector2(this.camera.left, this.camera.bottom));
 
         if (justPressed) {
             this.focused = null;
             this.scene.components.forEach(Focusable, (focusable) => {
                 if (focusable.getAABB().contains(mousePos)) {
                     this.focused = focusable.entity;
+                    focusable.focused = true;
+                } else {
+                    focusable.focused = false;
                 }
             })
         }
@@ -153,9 +161,11 @@ export class UI extends System {
         for (const type of this.registered) {
             this.scene.components.forEach(type, (component) => {
                 if (component instanceof UIRenderableElement) {
-                    component.positionMeshes();
+                    component.positionMeshes(this.uiScene);
                 }
             });
         }
+
+        this.scene.game.renderer.render(this.uiScene, this.camera);
     }
 }
