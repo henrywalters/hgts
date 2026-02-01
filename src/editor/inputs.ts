@@ -1,5 +1,5 @@
 import { Color, Vector2, Vector3 } from "three";
-import { Field, Types } from "../core/reflection";
+import { Field, Reflection, Types } from "../core/reflection";
 import { ScriptRegistry } from "../core/script";
 import { IScene } from "../core/interfaces/scene";
 import { IEntity } from "../ecs/interfaces/entity";
@@ -131,6 +131,30 @@ export function makeColorInput(label: string, color: Color, onChange: (value: Ve
     return root;
 }
 
+export function makeClassInput(scene: IScene, label: string, obj: any, onChange: (value: any) => void) {
+    const root = document.createElement('div');
+
+    const labelEl = document.createElement('h4');
+    labelEl.innerText = label;
+
+    console.log(obj);
+
+    root.appendChild(labelEl);
+
+    console.log(Reflection);
+
+    for (const [key, param] of Reflection.getParams(obj)) {
+        root.appendChild(makeInput(scene, obj, key, param, (value) => {
+            obj[key] = value;
+            onChange(value);
+        }));
+
+        console.log(key, param);
+    }
+
+    return root;
+}
+
 export function makeSelectInput(label: string, options: any, value: any, onChange: (value: any) => void) {
     const root = document.createElement('div');
 
@@ -139,15 +163,14 @@ export function makeSelectInput(label: string, options: any, value: any, onChang
 
     const input = document.createElement('sl-select');
 
+    console.log(value);
+
     for (const option of options) {
         const opt = document.createElement('sl-option');
         opt.setAttribute('value', option);
         opt.innerHTML = option;
         input.appendChild(opt);
     }
-
-    // @ts-ignore
-    input.value = value;
 
     input.addEventListener('sl-input', (e) => {
         // @ts-ignore
@@ -156,6 +179,8 @@ export function makeSelectInput(label: string, options: any, value: any, onChang
 
     root.appendChild(labelEl);
     root.appendChild(input);
+
+    input.setAttribute('value', value);
 
     return root;
 }
@@ -225,6 +250,8 @@ export function makeInput(scene: IScene, object: any, key: string, field: Field,
         div.appendChild(makeSelectInput(label, ScriptRegistry.registry.keys(), object[key], change));
     } else if (field.type === Types.Entity) {
         div.appendChild(makeEntitySelectInput(scene, label, object[key], change));
+    } else if (field.type === Types.Class) {
+        div.appendChild(makeClassInput(scene, label, object[key], change));  
     } else {
         throw new Error(`Unsupported field type: ${field.type}`);
     }

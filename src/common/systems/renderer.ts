@@ -2,19 +2,28 @@ import { BoxGeometry, Color, Euler, Mesh, MeshBasicMaterial, MeshStandardMateria
 import { IScene } from "../../core/interfaces/scene";
 import { System } from "../../ecs/system";
 import { OrthographicCamera, PerspectiveCamera } from "../components/camera";
-import { MeshComponent, MeshPrimitive, TextMesh } from "../components/mesh";
+import { MeshPrimitive, TextMesh } from "../components/mesh";
 import { EntityEvents } from "../../core/events";
 import { ComponentCtr } from "../../ecs/interfaces/component";
 import { Smooth } from "../components/smooth";
 import { TextHAlignment } from "../components/ui/alignment";
+import { Line } from "../components/line";
+import { SpriteSheet } from "../components/spriteSheet";
+import { DEG2RAD } from "three/src/math/MathUtils.js";
+import { Assets } from "../../core/assets";
+import { Renderable } from "../components/renderable";
+import { GridDisplay } from "../components/grid";
+import { Tilemap } from "../components/tilemap";
 
 export class Renderer extends System {
-
-    private meshes: Map<number, Mesh> = new Map();
 
     private managedComponents: ComponentCtr<any>[] = [
         MeshPrimitive,
         TextMesh,
+        Line,
+        SpriteSheet,
+        GridDisplay,
+        Tilemap,
     ];
 
     constructor(scene: IScene) {
@@ -31,25 +40,24 @@ export class Renderer extends System {
 
             if (e.type === EntityEvents.Remove) {
                 for (const type of this.managedComponents) {
-                    const component = e.entity.getComponent<MeshComponent>(type);
-                    if (component && this.meshes.has(component.id)) {
-                        this.scene.scene.remove(this.meshes.get(component.id)!);
+                    const component = e.entity.getComponent<Renderable>(type);
+                    if (component) {
+                        component.removeMeshes(this.scene.scene);
                     }
                 }
             }
 
-            if (!e.component || !(e.component instanceof MeshComponent)) return;
+            if (!e.component || !(e.component instanceof Renderable)) return;
 
             if (e.type === EntityEvents.AddComponent) {
-                    const mesh = new Mesh();
-                    this.meshes.set(e.component.id, mesh);
-                    e.component.updateMesh(mesh);
+                e.component.addMeshes(this.scene.scene);
+                for (const mesh of e.component.meshes) {
                     this.scene.scene.add(mesh);
-
+                }
             } else if (e.type === EntityEvents.UpdateComponent) {
-                e.component.updateMesh(this.meshes.get(e.component.id)!);
+                e.component.updateMeshes(this.scene.scene);
             } else if (e.type === EntityEvents.RemoveComponent) {
-                this.scene.scene.remove(this.meshes.get(e.component.id)!);
+                e.component.removeMeshes(this.scene.scene);
             }
         });
     }
@@ -71,6 +79,7 @@ export class Renderer extends System {
                 console.warn("Only one camera is used at once");
                 return;
             }
+            cam.camera.lookAt(new Vector3(0, 0, 0));
             camera = cam;
         });
 
@@ -78,6 +87,36 @@ export class Renderer extends System {
     }
 
     onUpdate(dt: number): void {
+
+        this.scene.components.forEach(SpriteSheet, (ss) => {
+
+            if (!Assets.spriteSheets.has(ss.spriteSheet)) return;
+
+            const sheet = Assets.spriteSheets.get(ss.spriteSheet);
+
+            const mesh = ss.entity.getComponent(MeshPrimitive);
+
+            if (!mesh) return;
+
+            if (ss.animated) {
+                ss.timeSinceTick += dt;
+                const tickRate = ss.animationSpeed / (sheet.cells.x * sheet.cells.y);
+                while (ss.timeSinceTick > tickRate) {
+                    ss.index++;
+                    ss.timeSinceTick -= tickRate;
+                }
+            }
+
+            const index = ss.index % (sheet.cells.x * sheet.cells.y);
+            const uv = sheet.getCell(sheet.getCellPos(index));
+
+            mesh.texture = ss.spriteSheet;
+            mesh.textureMin = uv.min;
+            mesh.textureMax = uv.max;
+
+            mesh.notifyUpdate();
+        })
+
         this.scene.components.forEach(Smooth, (smooth) => {
             const delta = new Vector3();
             delta.subVectors(smooth.targetPosition, smooth.entity.transform.position);
@@ -118,6 +157,8 @@ export class Renderer extends System {
         for (const type of this.managedComponents) {
             this.scene.components.forEach(type, (component) => {
 
+                if (!(component instanceof Renderable)) return;
+
                 const position = component.entity.position;
 
                 if (component instanceof TextMesh) {
@@ -129,10 +170,12 @@ export class Renderer extends System {
                     }
                 }
 
-                euler.set(component.entity.rotation.x, component.entity.rotation.y, component.entity.rotation.z, 'XYZ');
-                const mesh = this.meshes.get(component.id)!;
-                mesh.position.copy(position);
-                mesh.rotation.copy(euler);
+                euler.set(component.entity.rotation.x * DEG2RAD, component.entity.rotation.y * DEG2RAD, component.entity.rotation.z * DEG2RAD, 'XYZ');
+                
+                for (const mesh of component.meshes) {
+                    mesh.position.copy(position);
+                    mesh.rotation.copy(euler);
+                }
             });
         }
 

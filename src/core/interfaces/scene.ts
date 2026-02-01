@@ -41,6 +41,8 @@ export interface IScene {
     update(dt: number): void;
 
     forEachEntity(cb: (entity: IEntity) => void): void;
+
+    getEntityByName(name: string, parent?: IEntity): IEntity | null;
 }
 
 export type SceneCtr<T extends IScene> = {

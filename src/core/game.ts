@@ -98,6 +98,22 @@ export class Game implements IGame {
             }
         }
 
+        if (manifest.assets.textures) {
+            for (const texture of manifest.assets.textures) {
+                Assets.loadTexture(texture).then(() => {
+                    console.log(`Loaded texture ${texture.name}`);
+                })
+            }
+        }
+
+        if (manifest.assets.spriteSheets) {
+            for (const ss of manifest.assets.spriteSheets) {
+                Assets.loadSpriteSheet(ss).then(() => {
+                    console.log(`Loaded spritesheet ${ss.name}`);
+                });
+            }
+        }
+
         for (const script of manifest.scripts) {
             ScriptRegistry.register(script);
         }

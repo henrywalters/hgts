@@ -181,7 +181,7 @@ export class Scene implements IScene {
         }
     }
 
-    forEachEntity(cb: (entity: IEntity) => void): void {
+    forEachEntity(cb: (entity: IEntity) => void, parent?: IEntity): void {
         const traverse = (parent: IEntity) => {
             cb(parent);
             for (const child of parent.children) {
@@ -189,8 +189,20 @@ export class Scene implements IScene {
             }
         }
 
-        for (const entity of this.entities) {
-            traverse(entity);
+        if (parent) {
+            traverse(parent);
+        } else {
+            for (const entity of this.entities) {
+                traverse(entity);
+            }
         }
+    }
+
+    getEntityByName(name: string, parent?: IEntity): IEntity | null {
+        let out: IEntity | null = null;
+        this.forEachEntity((entity) => {
+            if (entity.name === name) out = entity;
+        }, parent);
+        return out;
     }
 }

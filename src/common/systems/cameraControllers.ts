@@ -3,11 +3,35 @@ import { System } from "../../ecs/system";
 import { FreeCamera } from "../components/freeCamera";
 import { Axes, Buttons } from "../../core/interfaces/input";
 import { clamp } from "three/src/math/MathUtils.js";
-import { PerspectiveCamera } from "../components/camera";
+import { CameraPan, CameraZoom, OrthographicCamera, PerspectiveCamera } from "../components/camera";
 import { EntityEvents } from "../../core/events";
+import { IScene } from "../../core/interfaces/scene";
 
 export class CameraControllers extends System {
+
+    constructor(scene: IScene) {
+        super(scene);
+        this.scene.components.register(FreeCamera);
+        this.scene.components.register(CameraPan);
+        this.scene.components.register(CameraZoom);
+    }
+
     public onUpdate(dt: number): void {
+
+        this.scene.components.forEach(CameraPan, (pan) => {
+            const direction = this.scene.game.input.getAxis(Axes.KeyboardWASD);
+            const movement = new Vector3()
+                .add(pan.right.clone().multiplyScalar(pan.speed * direction.x * dt))
+                .add(pan.up.clone().multiplyScalar(pan.speed * direction.y * dt));
+            pan.entity.transform.position.add(movement);
+        });
+
+        this.scene.components.forEach(CameraZoom, (zoom) => {
+            const scroll = this.scene.game.input.getAxis(Axes.MouseWheel).y;
+            const camera = zoom.entity.getComponent(OrthographicCamera)!;
+            camera.zoom = clamp(camera.zoom - scroll * dt * zoom.speed, zoom.minZoom, zoom.maxZoom);
+            camera.notifyUpdate();
+        })
 
         this.scene.components.forEach(FreeCamera, (controller) => {
 

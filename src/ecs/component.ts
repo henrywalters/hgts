@@ -129,14 +129,23 @@ export class ComponentRegistry implements IComponentRegistry {
     }
 
     private getReg<T extends IComponent>(ctr: ComponentCtr<T>) {
+        if (!this.ctrToComponent.has(ctr)) {
+            throw new Error(`Component '${ctr.name}' is not registered. Is it in the manifest?`);
+        }
         return this.ctrToComponent.get(ctr)!;
     }
 
     private getRegByClass<T extends IComponent>(cls: T) {
+        if (!this.ctrToComponent.has(cls.constructor as ComponentCtr<any>)) {
+            throw new Error(`Component '${cls.constructor.name}' is not registered. Is it in the manifest?`);
+        }
         return this.ctrToComponent.get(cls.constructor as ComponentCtr<any>)!;
     }
 
     private getRegByName(name: string) {
+        if (!this.nameToCtr.has(name)) {
+            throw new Error(`Component '${name}' is not registered. Is it in the manifest?`);
+        }
         return this.ctrToComponent.get(this.nameToCtr.get(name)!)!;
     }
 

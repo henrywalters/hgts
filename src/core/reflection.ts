@@ -146,6 +146,12 @@ export function serialize(field: Field, value: any): any {
         return [value.x, value.y];
     } else if (field.type === Types.Color) {
         return [value.r, value.g, value.b];
+    } else if (field.type === Types.Class) {
+        const out: any = {};
+        for (const [key, param] of Reflection.getParams(value)) {
+            out[key] = serialize(param, value[key]);
+        }
+        return out;
     } else {
         return value;
     }
@@ -158,6 +164,16 @@ export function deserialize(field: Field, value: any): any {
         return new TVector2(value[0], value[1]);
     } else if (field!.type === Types.Color) {
         return new TColor(value[0], value[1], value[2]);
+    } else if (field.type === Types.Class) {
+        if (!field.ctr) {
+            throw new Error(`Class field requires ctr`);
+        }
+        const obj = new field.ctr();
+        for (const [key, param] of Reflection.getParams(obj)) {
+            obj[key] = deserialize(param, value[key]);
+        }
+        console.log(obj);
+        return obj;
     } else {
         return value;
     }

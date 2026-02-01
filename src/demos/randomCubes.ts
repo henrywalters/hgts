@@ -1,5 +1,5 @@
 import { BoxGeometry, Color, MeshNormalMaterial, Vector3 } from "three";
-import { MeshComponent, MeshPrimitive, MeshPrimitiveType } from "../common/components/mesh";
+import { MeshPrimitive, MeshPrimitiveType } from "../common/components/mesh";
 import { Transform } from "../common/components/transform";
 import { Scene } from "../core/scene";
 import { Component } from "../ecs/component";

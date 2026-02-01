@@ -1,15 +1,10 @@
-import { Box3, BoxGeometry, Color, Material, Mesh, MeshBasicMaterial, PlaneGeometry, SphereGeometry, Vector2, Vector3 } from "three";
-import { Component } from "../../ecs/component";
-import { Param, Types } from "../../core/reflection";
+import { BoxGeometry, Color, DoubleSide, Float32BufferAttribute, Mesh, MeshBasicMaterial, PlaneGeometry, Scene, SphereGeometry, Vector2, Vector3 } from "three";
+import { Boolean, Float, Param, Types } from "../../core/reflection";
 import { TextGeometry } from "three/examples/jsm/Addons.js";
 import { Assets } from "../../core/assets";
 import { AABB } from "../../utils/math";
 import { TextHAlignment } from "./ui/alignment";
-
-export abstract class MeshComponent extends Component {
-    abstract updateMesh(mesh: Mesh): void;
-    abstract getAABB(mesh: Mesh): void;
-}
+import { Renderable } from "./renderable";
 
 export enum MeshPrimitiveType {
     Cube = 'Cube',
@@ -17,61 +12,82 @@ export enum MeshPrimitiveType {
     Plane = 'Plane'
 };
 
-export class MeshPrimitive extends MeshComponent {
+export class MeshPrimitive extends Renderable {
+
     @Param({type: Types.Enum, enum: MeshPrimitiveType})
     type: MeshPrimitiveType = MeshPrimitiveType.Cube;
 
-    @Param({type: Types.Float})
+    @Float()
     width: number = 1;
 
-    @Param({type: Types.Float})
+    @Float()
     height: number = 1;
 
-    @Param({type: Types.Float})
+    @Float()
     depth: number = 1;
 
-    @Param({type: Types.Float})
+    @Float()
     radius: number = 1;
 
     @Param({type: Types.Color})
     color: Color = new Color('black');
 
-    updateMesh(mesh: Mesh): void {
+    @Boolean()
+    transparent: boolean = false;
+
+    @Float()
+    opacity: number = 1.0;
+
+    @Param({type: Types.String})
+    texture: string = "";
+
+    @Param({type: Types.Vector2})
+    textureMin: Vector2 = new Vector2();
+
+    @Param({type: Types.Vector2})
+    textureMax: Vector2 = new Vector2(1, 1);
+
+    updateMeshes(scene: Scene): void {
         if (this.type === MeshPrimitiveType.Cube) {
-            mesh.geometry = new BoxGeometry(this.width, this.height, this.depth);
+            this.mesh.geometry = new BoxGeometry(this.width, this.height, this.depth);
         } else if (this.type === MeshPrimitiveType.Plane) {
-            mesh.geometry = new PlaneGeometry(this.width, this.height);
+            this.mesh.geometry = new PlaneGeometry(this.width, this.height);
         } else if (this.type === MeshPrimitiveType.Sphere) {
-            mesh.geometry = new SphereGeometry(this.radius);
+            this.mesh.geometry = new SphereGeometry(this.radius);
         } else {
             throw new Error(`Unsupported Mesh Primtiive ${this.type}`);
         }
 
-        mesh.material = new MeshBasicMaterial({color: this.color});
-    }
+        if (Assets.textures.has(this.texture)) {
+            
+            const uvs = new Float32Array([
+                this.textureMin.x, this.textureMax.y, // v0 (top-left)
+                this.textureMax.x, this.textureMax.y, // v1 (top-right)
+                this.textureMin.x, this.textureMin.y, // v2 (bottom-left)
+                this.textureMax.x, this.textureMin.y, // v3 (bottom-right)
+            ]);
+            
+            this.mesh.geometry.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
+            this.mesh.geometry.attributes.uv.needsUpdate = true;
 
-    getAABB() {
-        const origin = new Vector2(this.entity.transform.position.x, this.entity.transform.position.y);
-        let min = new Vector2();
-        let max = new Vector2();
-        if (this.type === MeshPrimitiveType.Cube) {
-            min.addVectors(origin, new Vector2(-this.width / 2, -this.height / 2));
-            max.addVectors(origin, new Vector2(this.width / 2, this.height / 2));
-        } else if (this.type === MeshPrimitiveType.Plane) {
-            min.addVectors(origin, new Vector2(-this.width / 2, -this.height / 2));
-            max.addVectors(origin, new Vector2(this.width / 2, this.height / 2));
-        } else if (this.type === MeshPrimitiveType.Sphere) {
-            min.addVectors(origin, new Vector2(-this.radius, -this.radius));
-            max.addVectors(origin, new Vector2(this.radius, this.radius));
+            this.mesh.material = new MeshBasicMaterial({
+                map: Assets.textures.get(this.texture),
+                transparent: this.transparent,
+                opacity: this.opacity,
+                side: DoubleSide,
+            });
+            this.mesh.material.needsUpdate = true;
         } else {
-            throw new Error(`Unsupported Mesh Primtiive ${this.type}`);
+            this.mesh.material = new MeshBasicMaterial({
+                color: this.color,
+                transparent: this.transparent,
+                opacity: this.opacity,
+            })
         }
-
-        return new AABB(min, max);
     }
 }
 
-export class TextMesh extends MeshComponent {
+export class TextMesh extends Renderable {
 
     @Param({type: Types.String})
     text: string = "";
@@ -82,7 +98,7 @@ export class TextMesh extends MeshComponent {
     @Param({type: Types.Int})
     size: number = 24;
 
-    @Param({type: Types.Float})
+    @Float()
     depth: number = 1;
 
     @Param({type: Types.Color})
@@ -108,8 +124,7 @@ export class TextMesh extends MeshComponent {
         return  ((ascender + descender) / 2) * this.size / font.data.resolution;
     }
 
-    updateMesh(mesh: Mesh) {
-
+    updateMeshes(scene: Scene): void {
         if (!Assets.fonts.has(this.font)) {
             console.warn(`Font does not exist ${this.font}`);
             return;
@@ -117,22 +132,17 @@ export class TextMesh extends MeshComponent {
 
         const font = Assets.fonts.get(this.font);
 
-        mesh.geometry = new TextGeometry(this.text, {
+        this.mesh.geometry = new TextGeometry(this.text, {
             font,
             size: this.size,
             depth: this.depth,
         });
 
-        mesh.geometry.computeBoundingBox();
+        this.mesh.geometry.computeBoundingBox();
 
-        mesh.geometry.boundingBox?.getSize(this.textSize);
+        this.mesh.geometry.boundingBox?.getSize(this.textSize);
         this.textSize.setY(this.size);
 
-        mesh.material = new MeshBasicMaterial({color: this.color});
-    }
-
-    getAABB(mesh: Mesh): AABB {
-        const pos = new Vector2;
-        return new AABB(new Vector2(), new Vector2());
+        this.mesh.material = new MeshBasicMaterial({color: this.color});
     }
 }

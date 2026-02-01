@@ -45,7 +45,7 @@ export class Text extends UIRenderableElement {
 
     splitText(font: Font): string[] {
         const wordChunks = this.text.split('\n').map((words) => words.split(' '));
-        console.log(wordChunks);
+
         const lines = [];
 
         let currentLine = '';
@@ -78,8 +78,6 @@ export class Text extends UIRenderableElement {
         const font = Assets.fonts.get(this.font);
 
         const lines = this.splitText(font);
-
-        console.log(lines);
 
         for (const line of lines) {
             const mesh = new Mesh();
@@ -156,8 +154,6 @@ export class Text extends UIRenderableElement {
         this.cursor.position.setZ(10);
 
         scene.add(this.cursor);
-
-        // console.log(xSize, ySize);
     }
 
     updateMeshes(scene: Scene): void {
