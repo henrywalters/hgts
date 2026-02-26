@@ -1,4 +1,4 @@
-import { Mesh, Scene, Vector2 } from "three";
+import { Mesh, Scene, Vector2, Vector3 } from "three";
 import { Param, Types } from "../../../core/reflection";
 import { Component } from "../../../ecs/component";
 import { AABB } from "../../../utils/math";
@@ -7,6 +7,8 @@ import { clamp } from "three/src/math/MathUtils.js";
 import { EntityEvents } from "../../../core/events";
 import { MeshPrimitive } from "../mesh";
 import { AnchorAlignment } from "./alignment";
+import { FlexColumn, FlexRow } from "./flex";
+import { IEntity } from "../../../ecs/interfaces/entity";
 
 export function getAnchorPosition(size: Vector2, parentSize: Vector2, alignment: AnchorAlignment): Vector2 {
     const center = parentSize.clone().multiplyScalar(0.5);
@@ -43,6 +45,11 @@ export enum UIUnit {
     Percent = 'Percent',
 }
 
+export interface UIFrame {
+    offset: Vector2;
+    size: Vector2;
+}
+
 export class UIElement extends Component {
 
     protected meshes: Mesh[] = [];
@@ -72,6 +79,13 @@ export class UIElement extends Component {
 
     size = new Vector2();
 
+    protected getFrame(child: UIElement): UIFrame {
+        return {
+            offset: new Vector2(),
+            size: this.innerSize.clone(),
+        }
+    }
+
     update() {
         const parentSize = new Vector2();
         const parentPos = new Vector2();
@@ -80,9 +94,9 @@ export class UIElement extends Component {
         if (this.entity.parent) {
             for (const component of this.entity.parent.getComponents()) {
                 if (component instanceof UIElement) {
-                    parentSize.copy(component.innerSize);
-                    parentPos.x = component.entity.position.x;
-                    parentPos.y = component.entity.position.y;
+                    const frame = component.getFrame(this);
+                    parentSize.copy(frame.size);
+                    parentPos.copy(frame.offset);
                 }
             }
         }
@@ -111,7 +125,6 @@ export class UIElement extends Component {
         if (this.size.x !== newSize.x || this.size.y !== newSize.y || this.innerSize.x !== newInnerSize.x || this.innerSize.y !== newInnerSize.y) {
             this.size.copy(newSize);
             this.innerSize.copy(newInnerSize);
-            console.log(this.size, this.innerSize);
             this.entity.scene.entityEvents.emit({
                 type: EntityEvents.UpdateComponent,
                 entity: this.entity,
@@ -120,7 +133,13 @@ export class UIElement extends Component {
         }
 
         if (this.anchored) {
-            const pos = getAnchorPosition(this.size, parentSize, this.anchorAlignment);
+
+            let pos = parentPos;
+
+            if (parentPos.x === 0 && parentPos.y === 0) {
+                pos = getAnchorPosition(this.size, parentSize, this.anchorAlignment);
+            }
+            
             if (pos.x !== this.entity.transform.position.x || pos.y !== this.entity.transform.position.y) {
                 this.entity.transform.position.x = pos.x;
                 this.entity.transform.position.y = pos.y;
@@ -144,9 +163,10 @@ export class UIElement extends Component {
     }
 
     getAABB(): AABB {
+        const pos = this.entity.position;
         return new AABB(
-            new Vector2(this.entity.position.x - this.size.x / 2, this.entity.position.y - this.size.y / 2),
-            new Vector2(this.entity.position.x + this.size.x / 2, this.entity.position.y + this.size.y / 2)
+            new Vector2(pos.x - this.size.x / 2, pos.y - this.size.y / 2),
+            new Vector2(pos.x + this.size.x / 2, pos.y + this.size.y / 2)
         )
     }
 }

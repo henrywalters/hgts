@@ -152,6 +152,13 @@ export function serialize(field: Field, value: any): any {
             out[key] = serialize(param, value[key]);
         }
         return out;
+    } else if (field.type === Types.Array) {
+        let out = [];
+        console.log(value);
+        for (const el of value) {
+            out.push(serialize({type: field.subType!}, el));
+        }
+        return out;
     } else {
         return value;
     }
@@ -172,8 +179,19 @@ export function deserialize(field: Field, value: any): any {
         for (const [key, param] of Reflection.getParams(obj)) {
             obj[key] = deserialize(param, value[key]);
         }
-        console.log(obj);
         return obj;
+    } else if (field.type === Types.Array) { 
+        if (!field.subType) {
+            throw new Error(`Array field requires subType`);
+        }
+        const out = [];
+
+        for (const el of value) {
+            out.push(deserialize({type: field.subType, ctr: field.ctr}, el));
+        }
+
+        return out;
+
     } else {
         return value;
     }

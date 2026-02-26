@@ -1,4 +1,4 @@
-import { INetAddress, NetEvents } from "./interfaces/net";
+import { INetAddress, NetEvent, NetEvents } from "./interfaces/net";
 import { IClient } from "./interfaces/client";
 import { NetElement } from "./net";
 import { INetMessage, INetMessages } from "./interfaces/messages";
@@ -22,8 +22,6 @@ export class Client extends NetElement implements IClient {
     public get connected() { return this._connected; }
 
     private connectionDelay: number = 1000;
-
-    public onMessage: (msg: INetMessage) => void = (_) => {};
 
     constructor(address: INetAddress, client: INetMessages, server: INetMessages, isNode = false) {
         super(address, client, server);
@@ -50,12 +48,14 @@ export class Client extends NetElement implements IClient {
             this.socket.onopen = () => {
                 console.log(`Connected to server: ${this.address.host}:${this.address.port}`);
                 this._connected = true;
+                this.onEvent({type: NetEvents.Connected});
                 this.events.push({type: NetEvents.Connected});
             }
 
             this.socket.onclose = () => {
                 console.log(`Disconnected from server: ${this.address.host}:${this.address.port}`);
                 this._connected = false;
+                this.onEvent({type: NetEvents.Disconnected});
                 setTimeout(() => this.connect(), this.connectionDelay);
             }
 

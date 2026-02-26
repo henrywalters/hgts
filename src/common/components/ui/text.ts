@@ -101,6 +101,8 @@ export class Text extends UIRenderableElement {
 
     positionMeshes(scene: Scene): void {
 
+        if (!this.entity) return;
+
         const screenSize = this.entity.scene.game.getSize();
 
         let xSize = 0;

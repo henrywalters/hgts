@@ -33,4 +33,6 @@ export interface IEntity {
     removeComponent(component: IComponent): void;
     
     removeComponents<T extends IComponent>(ctr: ComponentCtr<T>): void;
+
+    getChild(name: string): IEntity | undefined;
 }

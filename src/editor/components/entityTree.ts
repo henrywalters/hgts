@@ -126,6 +126,7 @@ export class EntityTree extends EditorComponent implements IEditorComponent {
     }
 
     render(container: ComponentContainer, state: any): void {
+        container.element.style.overflowY = 'scroll';
         const button = document.createElement('sl-button');
         button.innerText = 'Create Entity';
         // @ts-ignore

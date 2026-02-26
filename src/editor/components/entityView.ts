@@ -3,17 +3,20 @@ import { IEditorComponent } from "../interfaces/editorComponent";
 import { EditorComponent } from "./editorComponent";
 import { IEditor } from "../interfaces/editor";
 import { IEntity } from "../../ecs/interfaces/entity";
-import { makeInput, makeSimpleInput } from "../inputs";
+import { makeInput } from "../inputs";
 import { Reflection, Types } from "../../core/reflection";
 import { EntityEvents, SceneEvents } from "../../core/events";
 import { ScriptRegistry } from "../../core/script";
 import { IScene } from "../../core/interfaces/scene";
 import { serializeEntity } from "../../core/serialization";
+import { ShoelaceHTMLGenerator } from "../../html/shoelace";
+import { saveToFile } from "../../utils/file";
 
 export class EntityView extends EditorComponent implements IEditorComponent {
 
     private root: HTMLDivElement;
     private entity: IEntity | null = null;
+    private generator = new ShoelaceHTMLGenerator();
     
     constructor(editor: IEditor) {
         super(editor);
@@ -71,44 +74,46 @@ export class EntityView extends EditorComponent implements IEditorComponent {
 
         this.root.appendChild(id);
 
-        const removeBtn = document.createElement('sl-button');
-        removeBtn.innerText = 'Remove Entity';
-        
-        removeBtn.addEventListener('click', (e) => {
+        this.root.appendChild(this.generator.createButton('Remove Entity', () => {
             this.editor.game.currentScene!.removeEntity(this.entity!.id);
             this.entity = null;
             this.renderEntity();
-        });
+        }));
 
-        const saveBtn = document.createElement('sl-button');
-        saveBtn.innerText = 'Save as Prefab';
+        this.root.appendChild(this.generator.createButton('Save as Prefab', async () => {
+            await saveToFile(serializeEntity(this.entity!), this.entity!.name + ".json", ".json");
+        }));
 
-        saveBtn.addEventListener('click', async (e) => {
-                // @ts-ignore
-                const file = await window.showSaveFilePicker({
-                    suggestedName: 'scene.json',
-                    types: [{
-                        description: 'JSON Files',
-                        accept: { 'text/plain': ['.json']}
-                    }],
-                });
-                const writeable = await file.createWritable();
-                await writeable.write(JSON.stringify(serializeEntity(this.entity!), null, 2));
-                await writeable.close();
-        })
-
-        this.root.appendChild(removeBtn);
-        this.root.appendChild(saveBtn);
+        this.root.appendChild(this.generator.createButton('Duplicate', () => {
+            const prefab = serializeEntity(this.entity!);
+            const dup = this.editor.game.currentScene!.addEntityFromPrefab(prefab, `Copy of ${this.entity!.name}`);
+            if (this.entity!.parent) {
+                this.editor.game.currentScene!.changeEntityOwner(dup.id, this.entity!.parent.id);
+            }
+            this.editor.game.currentScene!.entityEvents.emit({
+                type: EntityEvents.Create,
+                entity: dup,
+            });
+            
+        }))
 
         const label = document.createElement('h3');
         label.innerText = 'Entity Name';
 
         this.root.appendChild(this.createComponentSelector());
-        
-        const nameInput = makeSimpleInput(null, {type: Types.String, description: 'Set the name of the Entity'}, this.entity.name, (value) => {
+
+        const nameInput = this.generator.createInput({
+            subLabel: "Set the name of the entity",
+            type: Types.String,
+        }, this.entity.name, (name) => {
             if (!this.entity) return;
-            this.entity.name = value as string;
-        });
+            this.entity.name = name as string;
+        })
+        
+        // const nameInput = makeSimpleInput(null, {type: Types.String, description: 'Set the name of the Entity'}, this.entity.name, (value) => {
+        //     if (!this.entity) return;
+        //     this.entity.name = value as string;
+        // });
 
         nameInput.addEventListener('blur', () => {
             this.editor.game.currentScene!.entityEvents.emit({
@@ -148,15 +153,13 @@ export class EntityView extends EditorComponent implements IEditorComponent {
             div.appendChild(header);
 
             for (const [key, field] of Reflection.getParams(component)) {
-
-                console.log(key, field);
                 div.appendChild(makeInput(this.editor.game.currentScene as IScene, component, key, field, (value) => {
                     this.editor.game.currentScene!.entityEvents.emit({
                         type: EntityEvents.UpdateComponent,
                         entity: this.entity!,
                         component: component,
                     })
-                }));
+                }, this.generator));
 
                 if (field.type === Types.Script) {
                     // @ts-ignore
@@ -169,7 +172,7 @@ export class EntityView extends EditorComponent implements IEditorComponent {
                                     entity: this.entity!,
                                     component,
                                 })
-                            }))
+                            }, this.generator))
                         }
                     }
                 }

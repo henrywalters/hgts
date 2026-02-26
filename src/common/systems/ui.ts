@@ -13,6 +13,8 @@ import { IEntity } from "../../ecs/interfaces/entity";
 import { Focusable } from "../components/ui/focusable";
 import { clamp } from "three/src/math/MathUtils.js";
 import { Text } from "../components/ui/text";
+import { Image } from "../components/ui/image";
+import { FlexColumn, FlexGrid, FlexRow } from "../components/ui/flex";
 
 export class UI extends System {
 
@@ -29,6 +31,10 @@ export class UI extends System {
         Text,
         TextInput,
         Focusable,
+        Image,
+        FlexColumn,
+        FlexRow,
+        FlexGrid,
     ]
 
     constructor(scene: IScene) {
@@ -69,6 +75,7 @@ export class UI extends System {
         this.scene.entityEvents.listen((e) => {
             if (!e.component || !(e.component instanceof UIRenderableElement)) return;
             if (e.type === EntityEvents.AddComponent) {
+                console.log(e);
                 e.component.addMeshes(this.uiScene);
             } else if (e.type === EntityEvents.UpdateComponent) {
                 e.component.updateMeshes(this.uiScene);
@@ -115,22 +122,27 @@ export class UI extends System {
         }
 
         this.scene.components.forEach(Button, (button) => {
-            const mesh = button.entity.getComponent(Container);
-            if (mesh) {
-                const aabb = mesh.getAABB();
+            let ui = button.entity.getComponent(Container);
+
+            if (!ui) {
+                ui = button.entity.getComponent(Text);
+            }
+
+            if (ui) {
+                const aabb = ui.getAABB();
 
                 if (aabb.contains(mousePos)) {
-                    if (mesh.color !== button.hoverColor) {
-                        mesh.color = button.hoverColor;
-                        mesh.notifyUpdate();
+                    if (ui.color !== button.hoverColor) {
+                        ui.color = button.hoverColor;
+                        ui.notifyUpdate();
                     }
 
                     button.isHovering = true;
                     
                 } else {
-                    if (mesh.color !== button.defaultColor) {
-                        mesh.color = button.defaultColor;
-                        mesh.notifyUpdate();
+                    if (ui.color !== button.defaultColor) {
+                        ui.color = button.defaultColor;
+                        ui.notifyUpdate();
                     }
 
                     button.isHovering = false;
@@ -165,7 +177,8 @@ export class UI extends System {
                 }
             });
         }
-
+        const size = this.scene.game.getSize();
+        this.scene.game.renderer.setViewport(0, 0, size.x, size.y);
         this.scene.game.renderer.render(this.uiScene, this.camera);
     }
 }

@@ -32,9 +32,6 @@ export class MeshPrimitive extends Renderable {
     @Param({type: Types.Color})
     color: Color = new Color('black');
 
-    @Boolean()
-    transparent: boolean = false;
-
     @Float()
     opacity: number = 1.0;
 
@@ -48,6 +45,19 @@ export class MeshPrimitive extends Renderable {
     textureMax: Vector2 = new Vector2(1, 1);
 
     updateMeshes(scene: Scene): void {
+
+        if (this.mesh.geometry) {
+            this.mesh.geometry.dispose();
+        }
+
+        // if (this.mesh.material) {
+        //     if (Array.isArray(this.mesh.material)) {
+        //         this.mesh.material.forEach(mat => mat.dispose());
+        //     } else {
+        //         this.mesh.material.dispose();
+        //     }
+        // }
+        
         if (this.type === MeshPrimitiveType.Cube) {
             this.mesh.geometry = new BoxGeometry(this.width, this.height, this.depth);
         } else if (this.type === MeshPrimitiveType.Plane) {
@@ -72,15 +82,15 @@ export class MeshPrimitive extends Renderable {
 
             this.mesh.material = new MeshBasicMaterial({
                 map: Assets.textures.get(this.texture),
-                transparent: this.transparent,
+                transparent: true,
                 opacity: this.opacity,
                 side: DoubleSide,
             });
-            this.mesh.material.needsUpdate = true;
+            // this.mesh.material.needsUpdate = true;
         } else {
             this.mesh.material = new MeshBasicMaterial({
                 color: this.color,
-                transparent: this.transparent,
+                transparent: this.opacity < 1.0,
                 opacity: this.opacity,
             })
         }
@@ -131,6 +141,10 @@ export class TextMesh extends Renderable {
         }
 
         const font = Assets.fonts.get(this.font);
+
+        if (this.mesh.geometry) {
+            this.mesh.geometry.dispose();
+        }
 
         this.mesh.geometry = new TextGeometry(this.text, {
             font,

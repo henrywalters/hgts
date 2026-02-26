@@ -1,10 +1,66 @@
 import { Behavior } from "../common/components/behavior";
-import { ComponentData } from "../ecs/interfaces/component";
+import { ComponentData, IComponent } from "../ecs/interfaces/component";
 import { EntityData, IEntity } from "../ecs/interfaces/entity";
 import { EntityEvents } from "./events";
 import { IScene, SceneData } from "./interfaces/scene";
-import { serialize, deserialize, Reflection } from "./reflection";
+import { serialize, deserialize, Reflection, Types } from "./reflection";
 import { ScriptRegistry } from "./script";
+
+export function serializeComponent(component: IComponent): ComponentData {
+    const comp: ComponentData = {
+        id: component.id,
+        name: component.constructor.name,
+        params: {}
+    };
+
+    for (const [key, param] of Reflection.getParams(component)) {
+        // @ts-ignore
+        comp.params[key] = serialize(param, component[key]);
+    }
+
+    if (component instanceof Behavior) {
+        const script = ScriptRegistry.get(component.scriptName, component)!;
+        for (const [key, param] of Reflection.getParams(script)) {
+            // @ts-ignore
+            comp.params[key] = serialize(param, script[key]);
+        }
+    }
+
+    return comp;
+}
+
+export function deserializeComponent(scene: IScene, entity: IEntity, componentData: ComponentData): IComponent {
+    const component = scene.components.addByName(entity, componentData.name);
+    const params = Reflection.getParams(component);
+    for (const key in componentData.params) {
+        if (!params.has(key)) {
+            continue;
+        }
+        const field = params.get(key)!;
+        // @ts-ignore
+        component[key] = deserialize(field, componentData.params[key]);
+    }
+
+    if (component instanceof Behavior) {
+        const script = ScriptRegistry.get(component.scriptName, component);
+        if (script) {
+            const scriptParams = Reflection.getParams(script);
+            for (const key in componentData.params) {
+                if (!scriptParams.has(key)) continue;
+                // @ts-ignore
+                script[key] = deserialize(scriptParams.get(key)!, componentData.params[key]);
+            }
+        }
+    }
+
+    scene.entityEvents.emit({
+        type: EntityEvents.AddComponent,
+        entity: entity,
+        component: component,
+    });
+
+    return component;
+}
 
 export function serializeEntity(entity: IEntity): EntityData {
     const data: EntityData = {
@@ -15,26 +71,7 @@ export function serializeEntity(entity: IEntity): EntityData {
     };
 
     for (const component of entity.getComponents()) {
-        const comp: ComponentData = {
-            id: component.id,
-            name: component.constructor.name,
-            params: {}
-        };
-
-        for (const [key, param] of Reflection.getParams(component)) {
-            // @ts-ignore
-            comp.params[key] = serialize(param, component[key]);
-        }
-
-        if (component instanceof Behavior) {
-            const script = ScriptRegistry.get(component.scriptName, component)!;
-            for (const [key, param] of Reflection.getParams(script)) {
-                // @ts-ignore
-                comp.params[key] = serialize(param, script[key]);
-            }
-        }
-
-        data.components.push(comp);
+        data.components.push(serializeComponent(component));
     }
 
     for (const child of entity.children) {
@@ -56,35 +93,11 @@ export function serializeScene(scene: IScene): SceneData {
     return data;
 }
 
-export function deserializeEntity(entity: IEntity, scene: IScene, data: EntityData, preserveIds = true) {
+export type EntityIdMap = {[key: number]: number};
+
+function _deserializeEntity(entity: IEntity, scene: IScene, data: EntityData, preserveIds = true, entityMap: EntityIdMap = {}, root = true) {
     for (const componentData of data.components) {
-        const component = scene.components.addByName(entity, componentData.name);
-        const params = Reflection.getParams(component);
-        for (const key in componentData.params) {
-            if (!params.has(key)) {
-                continue;
-            }
-            const field = params.get(key)!;
-            // @ts-ignore
-            component[key] = deserialize(field, componentData.params[key]);
-        }
-
-        if (component instanceof Behavior) {
-            const script = ScriptRegistry.get(component.scriptName, component);
-            if (!script) continue;
-            const scriptParams = Reflection.getParams(script);
-            for (const key in componentData.params) {
-                if (!scriptParams.has(key)) continue;
-                // @ts-ignore
-                script[key] = deserialize(scriptParams.get(key)!, componentData.params[key]);
-            }
-        }
-
-        scene.entityEvents.emit({
-            type: EntityEvents.AddComponent,
-            entity: entity,
-            component: component,
-        });
+        deserializeComponent(scene, entity, componentData);
     }
 
     for (const child of data.children) {
@@ -94,9 +107,49 @@ export function deserializeEntity(entity: IEntity, scene: IScene, data: EntityDa
         } else {
             childEntity = scene.addEntity(child.name);
             scene.changeEntityOwner(childEntity.id, entity.id);
+            entityMap[child.id] = childEntity.id;
         }
         
-        deserializeEntity(childEntity, scene, child);
+        entityMap = _deserializeEntity(childEntity, scene, child, preserveIds, entityMap, false);
+    }
+
+    return entityMap;
+}
+
+function _remapEntity(entity: IEntity, entityMap: EntityIdMap) {
+    for (const component of entity.getComponents()) {
+        const params = Reflection.getParams(component);
+        for (const [key, field] of params) {
+            if (field.type === Types.Entity) {
+                // @ts-ignore
+                component[key] = entityMap[component[key]];
+            }
+        }
+
+        if (component instanceof Behavior) {
+            const script = ScriptRegistry.get(component.scriptName, component);
+            if (script) {
+                const scriptParams = Reflection.getParams(script);
+                for (const [key, field] of scriptParams) {
+                    if (field.type === Types.Entity) {
+                        // @ts-ignore
+                        script[key] = entityMap[script[key]];
+                    }
+                }
+            }
+        }
+    }
+
+    for (const child of entity.children) {
+        _remapEntity(child, entityMap);
+    }
+}
+
+export function deserializeEntity(entity: IEntity, scene: IScene, data: EntityData, preserveIds = true) {
+    const entityMap = _deserializeEntity(entity, scene, data, preserveIds);
+
+    if (!preserveIds) {
+        _remapEntity(entity, entityMap);
     }
 }
 

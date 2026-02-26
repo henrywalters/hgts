@@ -14,6 +14,7 @@ import { Assets } from "../../core/assets";
 import { Renderable } from "../components/renderable";
 import { GridDisplay } from "../components/grid";
 import { Tilemap } from "../components/tilemap";
+import { Debug } from "../../core/debug";
 
 export class Renderer extends System {
 
@@ -31,6 +32,8 @@ export class Renderer extends System {
         this.scene.components.register(PerspectiveCamera);
         this.scene.components.register(OrthographicCamera);
         this.scene.components.register(Smooth);
+
+        Debug.Initialize(this.scene.scene);
 
         for (const component of this.managedComponents) {
             this.scene.components.register(component);
@@ -57,6 +60,7 @@ export class Renderer extends System {
             } else if (e.type === EntityEvents.UpdateComponent) {
                 e.component.updateMeshes(this.scene.scene);
             } else if (e.type === EntityEvents.RemoveComponent) {
+                console.log(e);
                 e.component.removeMeshes(this.scene.scene);
             }
         });
@@ -107,8 +111,8 @@ export class Renderer extends System {
                 }
             }
 
-            const index = ss.index % (sheet.cells.x * sheet.cells.y);
-            const uv = sheet.getCell(sheet.getCellPos(index));
+            ss.index = ss.index % (sheet.cells.x * sheet.cells.y);
+            const uv = sheet.getCell(sheet.getCellPos(ss.index));
 
             mesh.texture = ss.spriteSheet;
             mesh.textureMin = uv.min;
@@ -159,6 +163,11 @@ export class Renderer extends System {
 
                 if (!(component instanceof Renderable)) return;
 
+                if (!component.entity.transform) {
+                    console.warn(`Dangling component: `, component);
+                    return;
+                }
+
                 const position = component.entity.position;
 
                 if (component instanceof TextMesh) {
@@ -179,8 +188,8 @@ export class Renderer extends System {
             });
         }
 
-
-
         this.scene.game.renderer.render(this.scene.scene, camera.camera);
+
+        Debug.Clear(this.scene.game.getSize());
     }
 }

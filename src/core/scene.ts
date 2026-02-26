@@ -70,8 +70,8 @@ export class Scene implements IScene {
         const entity = typeof entityId === 'number' ? this.getEntity(entityId) : entityId;
         if (!entity) return;
 
-        for (const child of entity.children) {
-            this.removeEntity(child);
+        while (entity.children.length > 0) {
+            this.removeEntity(entity.children[0]);
         }
 
         for (const component of entity.getComponents()) {
@@ -79,6 +79,7 @@ export class Scene implements IScene {
         }
 
         const list = entity.parent ? entity.parent.children : this.entities;
+
         const index = list.findIndex((value) => value.id === entity.id);
         if (index >= 0) {
             this._entityMap.delete(entity.id);

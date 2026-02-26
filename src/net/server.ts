@@ -24,6 +24,8 @@ export class Server extends NetElement implements IServer {
         this.wss.on('connection', (ws) => {
             console.log(`Client Connected to port ${this.address.port}`);
             this.clients.add(ws);
+            
+            this.onEvent({type: NetEvents.Connected});
 
             this.events.push({
                 type: NetEvents.Connected,
@@ -43,6 +45,7 @@ export class Server extends NetElement implements IServer {
 
             ws.on('close', () => {
                 console.log(`Client disconnected from port ${this.address.port}`);
+                this.onEvent({type: NetEvents.Disconnected});
                 this.events.push({
                     type: NetEvents.Disconnected,
                     socket: ws,

@@ -80,7 +80,7 @@ export class Game implements IGame {
         this.loadManifest(manifest);
     }
 
-    public loadManifest(manifest: IManifest) {
+    public async loadManifest(manifest: IManifest) {
 
         if (manifest.server) {
             this._server = new Server(manifest.server.address, manifest.server.clientMessages, manifest.server.serverMessages);
@@ -121,12 +121,12 @@ export class Game implements IGame {
         for (const name in manifest.scenes) {
             const scene = this.addScene(name, manifest.scenes[name].ctr);
 
-            for (const system of manifest.systems) {
-                scene.addSystem(system);
-            }
-
             for (const component of manifest.components) {
                 scene.components.register(component);
+            }
+
+            for (const system of manifest.systems) {
+                scene.addSystem(system);
             }
 
             scene.load(manifest.scenes[name].data);

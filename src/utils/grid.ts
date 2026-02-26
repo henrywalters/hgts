@@ -31,4 +31,14 @@ export class Grid {
         return origin.add(pos);
     }
 
+    getNeighborhood(cell: Vector2, size: number = 1) {
+        const neighbors: Vector2[] = [];
+        for (let i = cell.x - size; i <= cell.x + size; i++) {
+            for (let j = cell.y - size; j <= cell.y + size; j++) {
+                neighbors.push(new Vector2(i, j));
+            }
+        }
+        return neighbors;
+    }
+
 }

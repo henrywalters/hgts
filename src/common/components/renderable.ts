@@ -19,7 +19,16 @@ export abstract class Renderable extends Component {
 
     removeMeshes(scene: Scene) {
         for (const mesh of this.meshes) {
+            mesh.geometry.dispose();
             scene.remove(mesh);
+
+            if (mesh.material) {
+                if (Array.isArray(mesh.material)) {
+                    mesh.material.forEach(mat => mat.dispose());
+                } else {
+                    mesh.material.dispose();
+                }
+            }
         }
         this.meshes = [];
     }

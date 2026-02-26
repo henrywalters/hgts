@@ -89,4 +89,11 @@ export class Entity extends HGObject implements IEntity {
         }
         return void 0;
     }
+
+    getChild(name: string): IEntity | undefined {
+        for (const child of this.children) {
+            if (child.name === name) return child;
+        }
+        return void 0;
+    }
 }

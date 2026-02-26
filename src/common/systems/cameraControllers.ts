@@ -28,7 +28,14 @@ export class CameraControllers extends System {
 
         this.scene.components.forEach(CameraZoom, (zoom) => {
             const scroll = this.scene.game.input.getAxis(Axes.MouseWheel).y;
-            const camera = zoom.entity.getComponent(OrthographicCamera)!;
+            let camera = zoom.entity.getComponent(OrthographicCamera);
+            if (!camera) {
+                camera = zoom.entity.getComponentInChildren(OrthographicCamera); 
+            }
+            if (!camera) {
+                console.error("CameraZoom must have OrthographicCamera in entity or child");
+                return;
+            }
             camera.zoom = clamp(camera.zoom - scroll * dt * zoom.speed, zoom.minZoom, zoom.maxZoom);
             camera.notifyUpdate();
         })

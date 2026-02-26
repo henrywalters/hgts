@@ -1,5 +1,5 @@
 import { Color, Vector2, Scene, InstancedMesh, Matrix4, Vector3, BoxGeometry, MeshBasicMaterial } from "three";
-import { Float, Int, Param, Types } from "../../core/reflection";
+import { Float, Int, Param, Types, Boolean } from "../../core/reflection";
 import { Renderable } from "./renderable";
 import { Grid } from "../../utils/grid";
 
@@ -15,15 +15,22 @@ export class GridDisplay extends Renderable {
     @Param({type: Types.Color})
     color: Color = new Color('blue');
 
+    @Float()
+    opacity: number = 1.0;
+
     addMeshes(scene: Scene) {
         const geometry1 = new BoxGeometry(this.lineThickness.x, this.grid.size.y + this.lineThickness.y);
         const geometry2 = new BoxGeometry(this.grid.size.x + this.lineThickness.x, this.lineThickness.y);
 
         const material1 = new MeshBasicMaterial({
-            color: this.color
+            color: this.color,
+            transparent: this.opacity < 1.0,
+            opacity: this.opacity,
         });
         const material2 = new MeshBasicMaterial({
-            color: this.color
+            color: this.color,
+            transparent: this.opacity < 1.0,
+            opacity: this.opacity,
         });
 
         this.meshes.push(new InstancedMesh(geometry1, material1, this.grid.cells.x + 1));

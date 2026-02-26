@@ -28,6 +28,10 @@ export class AABB implements IAABB {
     contains(point: Vector2): boolean {
         return point.x <= this.max.x && point.x >= this.min.x && point.y <= this.max.y && point.y >= this.min.y;
     }
+
+    intersects(other: AABB) {
+        return this.min.x < other.max.x && this.max.x > other.min.x && this.min.y < other.max.y && this.max.y > other.min.y;
+    }
 }
 
 export function sweepAABB(p0: Vector2, p1: Vector2, aabb: IAABB): number | null {
