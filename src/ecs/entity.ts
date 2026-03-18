@@ -12,6 +12,8 @@ export class Entity extends HGObject implements IEntity {
     public children: Entity[] = [];
     public parent?: Entity;
 
+    public active: boolean = true;
+
     public name: string = "";
 
     private _scene: IScene;
@@ -95,5 +97,18 @@ export class Entity extends HGObject implements IEntity {
             if (child.name === name) return child;
         }
         return void 0;
+    }
+
+    removeChildren(): void {
+        while (this.children.length > 0) {
+            this.scene.removeEntity(this.children[0].id);
+        }
+    }
+
+    notifyUpdate(): void {
+        this.scene.entityEvents.emit({
+            type: EntityEvents.Change,
+            entity: this,
+        })
     }
 }

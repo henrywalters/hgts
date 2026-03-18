@@ -147,13 +147,17 @@ export const BinaryTypes: {[key: string]: BinaryField} = {
     },
     [Types.Array]: {
         length: (field: Field, value: any[]) => {
+            console.log(field, value);
+            console.log(value, Reflection.getParams(field.ctr ? field.ctr : null));
             if (!field.subType) {
                 throw new Error(`Array requires subType parameter`);
-            }
+            } 
+
             let size = 4;
             for (const el of value) {
-                size += byteLength({type: field.subType}, el);
+                size += byteLength({type: field.subType, ctr: field.ctr}, el);
             }
+            console.log(size);
             return size;
         },
         write(field: Field, view: DataView, offset: number, value: any[]) {
@@ -163,13 +167,17 @@ export const BinaryTypes: {[key: string]: BinaryField} = {
             view.setInt32(offset, value.length);
             offset += 4;
 
+            console.log(field, view, offset);
+            console.log(value, Reflection.getParams(field.ctr ? field.ctr : null));
+
             for (const el of value) {
                 BinaryTypes[field.subType].write(field, view, offset, el);
-                offset += byteLength({type: field.subType}, el);
+                offset += byteLength({type: field.subType, ctr: el}, el);
             }
         },
         read(field: Field, view: DataView, offset: number) {
-
+            console.log(field, view, offset);
+            console.log(Reflection.getParams(field.ctr ? field.ctr : null));
             if (!field.subType) {
                 throw new Error(`Array requires subType parameter`);
             }
@@ -180,7 +188,7 @@ export const BinaryTypes: {[key: string]: BinaryField} = {
 
             for (let i = 0; i < length; i++) {
                 const value = BinaryTypes[field.subType].read(field, view, offset);
-                offset += byteLength({type: field.subType}, value);
+                offset += byteLength({type: field.subType, ctr: field.ctr}, value);
                 out.push(value);
             }
 
@@ -245,6 +253,7 @@ export class NetMessages implements INetMessages {
         let offset = 1;
 
         for (const [key, param] of Reflection.getParams(out)) {
+            console.log(key, param);
             out[key as (keyof T)] = BinaryTypes[param.type].read(param, view, offset);
             offset += byteLength(param, out[key as (keyof T)]);
         }

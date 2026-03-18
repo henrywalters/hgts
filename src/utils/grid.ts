@@ -12,7 +12,6 @@ export class Grid {
     get cellSize() { 
         return this.size.clone().divide(this.cells);
     }
-
     
     public getIndex(cellIndex: Vector2): number {
         return cellIndex.y * this.cells.x + cellIndex.x;
@@ -25,7 +24,7 @@ export class Grid {
         return new Vector2(pos.x, pos.y).divide(cellSize).floor();
     }
 
-    getCellPos(index: Vector2, origin: Vector3 = new Vector3): Vector3 {
+    getCellPos(index: Vector2, origin: Vector3 = new Vector3()): Vector3 {
         const cellSize = (this.size).clone().divide(this.cells);
         const pos = new Vector3(cellSize.x * index.x + cellSize.x / 2, cellSize.y * index.y + cellSize.y / 2, 0);
         return origin.add(pos);

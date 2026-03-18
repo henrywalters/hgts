@@ -32,6 +32,7 @@ export class EntityTree extends EditorComponent implements IEditorComponent {
                         if (entity) {
                             el.innerText = entity.name;
                         }
+                        this.renderTree();
                     }
                 }
             });

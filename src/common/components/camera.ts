@@ -1,7 +1,8 @@
-import { PerspectiveCamera as Perspective, OrthographicCamera as Orthographic, Camera, Vector3 } from "three"
+import { PerspectiveCamera as Perspective, OrthographicCamera as Orthographic, Camera, Vector3, Raycaster, Plane, Vector2 } from "three"
 import { Component } from "../../ecs/component";
 import { Param, Types } from "../../core/reflection";
 import { IComponent } from "../../ecs/interfaces/component";
+import { Axes } from "../../core/interfaces/input";
 
 export interface ICameraComponent {
     camera: Camera;
@@ -63,6 +64,26 @@ export class OrthographicCamera extends Component implements ICameraComponent {
         this.camera.top = this.top / this.zoom;
         this.camera.bottom = this.bottom / this.zoom;
         this.camera.updateProjectionMatrix();
+    }
+
+    getMousePos() {
+        const viewport = this.entity.scene.game.getViewport();
+        const mousePos = this.entity.scene.game.input.getAxis(Axes.MousePosition);
+        const size = viewport.size;
+        mousePos.setY(size.y - mousePos.y);
+        mousePos.divide(size).multiplyScalar(2).subScalar(1);
+
+        return this.getWorldPos(mousePos);
+    }
+
+    getWorldPos(pos: Vector2) {
+        const raycaster = new Raycaster();
+        raycaster.setFromCamera(pos as any, this.camera as any);
+
+        const worldPos = new Vector3();
+        raycaster.ray.intersectPlane(new Plane(new Vector3(0, 0, 1), 0), worldPos);
+        
+        return worldPos;
     }
 }
 

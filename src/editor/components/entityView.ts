@@ -126,6 +126,15 @@ export class EntityView extends EditorComponent implements IEditorComponent {
 
         this.root.appendChild(nameInput);
 
+        this.root.appendChild(this.generator.createCheckbox("Active", this.entity!.active, (val) => {
+            this.editor.game.currentScene!.traverse(this.entity!, (entity) => {
+                console.log(val);
+                entity.active = val;
+                entity.notifyUpdate();
+                console.log(entity);
+            })
+        }));
+
         this.root.appendChild(document.createElement('sl-divider'));
 
         //this.root.appendChild(this.addWatchedInput('text', 'Entity Name', this.entity, 'name'));

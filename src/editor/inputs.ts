@@ -184,7 +184,9 @@ export function makeInput(scene: IScene, object: any, key: string | number, fiel
                 value: entity.id.toFixed(0),
             })
         })
-        div.appendChild(generator.createSelect(label, object[key], options, change));
+        div.appendChild(generator.createSelect(label, object[key], options, (val) => {
+            change(parseInt(val));
+        }));
     } else if (field.type === Types.Class) {
         div.appendChild(makeClassInput(generator, scene, label, object[key], change));  
     } else if (field.type === Types.Array) { 

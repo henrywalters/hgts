@@ -62,6 +62,7 @@ class _Reflection {
     }
 
     setParam(obj: any, name: string, field: Field) {
+        console.log(obj.constructor.name, name, field);
         const key = obj.constructor.name;
         if (!this.fields.has(key)) {
             this.fields.set(key, new Map<string, Field>());
@@ -70,6 +71,7 @@ class _Reflection {
     }
 
     getParams(obj: any): Map<string, Field> {
+        console.log(obj);
         const out = new Map<string, Field>();
         this.traverse(obj, (name) => {
             if (this.fields.has(name)) {
@@ -78,6 +80,7 @@ class _Reflection {
                 }
             }
         })
+        console.log(out);
         return out;
     }
 }

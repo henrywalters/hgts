@@ -1,9 +1,10 @@
 import { BoxGeometry, Color, Mesh, MeshBasicMaterial, Scene, Vector2 } from "three";
-import { Param, Types } from "../../../core/reflection";
+import { Float, Param, Types } from "../../../core/reflection";
 import { getAnchorPosition, UIRenderableElement } from "./element";
 import { Font, TextGeometry } from "three/examples/jsm/Addons.js";
 import { Assets } from "../../../core/assets";
 import { TextHAlignment } from "./alignment";
+import { Transform } from "../transform";
 
 export class Text extends UIRenderableElement {
 
@@ -22,10 +23,17 @@ export class Text extends UIRenderableElement {
     @Param({type: Types.Color})
     color: Color = new Color('black');
 
+    @Float()
+    opacity: number = 1.0;
+
     @Param({type: Types.Enum, enum: TextHAlignment})
     alignment: TextHAlignment = TextHAlignment.Left;
 
     cursor: Mesh = new Mesh();
+
+    getTextSize() {
+        return this.measureText(this.text, Assets.fonts.get(this.font));
+    }
 
     measureText(text: string, font: Font): number {
         let width = 0;
@@ -85,14 +93,22 @@ export class Text extends UIRenderableElement {
                 font,
                 size: this.fontSize,
             });
-            mesh.material = new MeshBasicMaterial({color: this.color});
+            mesh.material = new MeshBasicMaterial({
+                color: this.color,
+                transparent: this.opacity < 1,
+                opacity: this.opacity,
+            });
             this.meshes.push(mesh);
             scene.add(mesh);
         }
 
         this.cursor = new Mesh();
         this.cursor.geometry = new BoxGeometry(this.fontSize / 4, this.fontSize, 1);
-        this.cursor.material = new MeshBasicMaterial({color: this.color});
+        this.cursor.material = new MeshBasicMaterial({
+            color: this.color,
+            transparent: this.opacity < 1,
+            opacity: this.opacity,
+        });
 
         this.cursor.visible = false;
 
@@ -102,6 +118,7 @@ export class Text extends UIRenderableElement {
     positionMeshes(scene: Scene): void {
 
         if (!this.entity) return;
+        if (!this.entity.getComponent(Transform)) return;
 
         const screenSize = this.entity.scene.game.getSize();
 

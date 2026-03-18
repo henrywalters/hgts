@@ -118,6 +118,7 @@ export class Scene implements IScene {
         if (this._entityMap.has(id)) {
             return this._entityMap.get(id) as Entity;
         }
+        console.log(this._entityMap, id);
         return null;
     }
 
@@ -182,19 +183,19 @@ export class Scene implements IScene {
         }
     }
 
-    forEachEntity(cb: (entity: IEntity) => void, parent?: IEntity): void {
-        const traverse = (parent: IEntity) => {
-            cb(parent);
-            for (const child of parent.children) {
-                traverse(child);
-            }
+    traverse(entity: IEntity, cb: (entity: IEntity) => void) {
+        cb(entity);
+        for (const child of entity.children) {
+            this.traverse(child, cb);
         }
+    }
 
+    forEachEntity(cb: (entity: IEntity) => void, parent?: IEntity): void {
         if (parent) {
-            traverse(parent);
+            this.traverse(parent, cb);
         } else {
             for (const entity of this.entities) {
-                traverse(entity);
+                this.traverse(entity, cb);
             }
         }
     }

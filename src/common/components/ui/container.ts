@@ -1,15 +1,22 @@
 import { BoxGeometry, Color, Euler, Mesh, MeshBasicMaterial, Scene } from "three";
-import { Param, Types } from "../../../core/reflection";
+import { Float, Param, Types } from "../../../core/reflection";
 import { UIRenderableElement } from "./element";
 
 export class Container extends UIRenderableElement {
     @Param({type: Types.Color})
     color: Color = new Color();
 
+    @Float()
+    opacity: number = 1.0;
+
     addMeshes(scene: Scene): void {
         const mesh = new Mesh();
         mesh.geometry = new BoxGeometry(this.innerSize.x, this.innerSize.y, 1);
-        mesh.material = new MeshBasicMaterial({color: this.color});
+        mesh.material = new MeshBasicMaterial({
+            color: this.color,
+            transparent: this.opacity < 1,
+            opacity: this.opacity,
+        });
         this.meshes.push(mesh);
         scene.add(mesh);
     }

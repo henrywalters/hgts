@@ -54,6 +54,12 @@ export class UIElement extends Component {
 
     protected meshes: Mesh[] = [];
 
+    setActive(active: boolean) {
+        for (const mesh of this.meshes) {
+            mesh.visible = active;
+        }
+    }
+
     @Param({type: Types.Enum, enum: AnchorAlignment})
     anchorAlignment: AnchorAlignment = AnchorAlignment.Center;
 
@@ -74,6 +80,9 @@ export class UIElement extends Component {
 
     @Param({type: Types.Vector2})
     margin: Vector2 = new Vector2();
+
+    @Param({type: Types.Vector2})
+    offset: Vector2 = new Vector2;
 
     innerSize = new Vector2();
 
@@ -139,6 +148,8 @@ export class UIElement extends Component {
             if (parentPos.x === 0 && parentPos.y === 0) {
                 pos = getAnchorPosition(this.size, parentSize, this.anchorAlignment);
             }
+
+            pos.add(this.offset);
             
             if (pos.x !== this.entity.transform.position.x || pos.y !== this.entity.transform.position.y) {
                 this.entity.transform.position.x = pos.x;

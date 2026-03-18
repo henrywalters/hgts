@@ -39,6 +39,8 @@ export interface IScene {
     addSystem<T extends ISystem>(ctr: SystemCtr<T>): ISystem;
     initialize(): void;
     update(dt: number): void;
+    
+    traverse(entity: IEntity, cb: (entity: IEntity) => void): void;
 
     forEachEntity(cb: (entity: IEntity) => void): void;
 

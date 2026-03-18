@@ -9,7 +9,7 @@ export class FlexColumn extends UIElement {
         const pos = this.entity.position;
         return {
             size,
-            offset: new Vector2(0, 0)
+            offset: new Vector2(0, this.innerSize.y / 2 - size.y * index - size.y / 2)
         }
     }
 }

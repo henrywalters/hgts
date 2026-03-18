@@ -7,7 +7,7 @@ import { Button } from "../components/ui/button";
 import { ComponentCtr } from "../../ecs/interfaces/component";
 import { Container } from "../components/ui/container";
 import { getAnchorPosition, UIElement, UIRenderableElement, UIUnit } from "../components/ui/element";
-import { EntityEvents } from "../../core/events";
+import { EntityEvent, EntityEvents } from "../../core/events";
 import { TextInput, TextInputEvents } from "../components/ui/textInput";
 import { IEntity } from "../../ecs/interfaces/entity";
 import { Focusable } from "../components/ui/focusable";
@@ -36,6 +36,8 @@ export class UI extends System {
         FlexRow,
         FlexGrid,
     ]
+
+    private eventQueue: EntityEvent[] = [];
 
     constructor(scene: IScene) {
         super(scene);
@@ -73,19 +75,30 @@ export class UI extends System {
         });
 
         this.scene.entityEvents.listen((e) => {
-            if (!e.component || !(e.component instanceof UIRenderableElement)) return;
-            if (e.type === EntityEvents.AddComponent) {
-                console.log(e);
-                e.component.addMeshes(this.uiScene);
-            } else if (e.type === EntityEvents.UpdateComponent) {
-                e.component.updateMeshes(this.uiScene);
-            } else if (e.type === EntityEvents.RemoveComponent) {
-                e.component.removeMeshes(this.uiScene);
-            }
+            this.eventQueue.push(e);
         })
     }
 
     onBeforeUpdate(): void {
+
+        for (const e of this.eventQueue) {
+            if (e.type === EntityEvents.Change) {
+                this.setActive(e.entity, e.entity.active);
+            }
+
+            if (!e.component || !(e.component instanceof UIRenderableElement)) continue;
+            if (e.type === EntityEvents.AddComponent) {
+                e.component.addMeshes(this.uiScene);
+                e.component.setActive(e.entity.active);
+            } else if (e.type === EntityEvents.UpdateComponent) {
+                e.component.updateMeshes(this.uiScene);
+                e.component.setActive(e.entity.active);
+            } else if (e.type === EntityEvents.RemoveComponent) {
+                e.component.removeMeshes(this.uiScene);
+            }
+        }
+
+        this.eventQueue = [];
 
         for (const type of this.registered) {
             this.scene.components.forEach(type, (component) => {
@@ -180,5 +193,18 @@ export class UI extends System {
         const size = this.scene.game.getSize();
         this.scene.game.renderer.setViewport(0, 0, size.x, size.y);
         this.scene.game.renderer.render(this.uiScene, this.camera);
+
+
+    }
+
+    setActive(entity: IEntity, value: boolean) {
+        this.scene.traverse(entity, (e) => {
+            for (const type of this.registered) {
+                const comp = e.getComponent(type);
+                if (comp && comp instanceof UIRenderableElement) {
+                    comp.setActive(value);
+                }
+            }
+        });
     }
 }

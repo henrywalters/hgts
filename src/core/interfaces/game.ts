@@ -4,6 +4,7 @@ import EventListenerPool, { EntityEvent, SceneEvent } from "../events";
 import { IInput } from "./input";
 import { IClient } from "../../net/interfaces/client";
 import { IServer } from "../../net/interfaces/server";
+import { AABB } from "../../utils/math";
 
 export interface IGame {
     renderer: WebGLRenderer;
@@ -26,6 +27,7 @@ export interface IGame {
     tick(headless: boolean): void;
 
     getSize(): Vector2;
+    getViewport(): AABB;
     
     resize(width: number, height: number): void;
 }

@@ -1,4 +1,4 @@
-import { Clock, Vector2, WebGLRenderer } from "three";
+import { Clock, Vector2, Vector4, WebGLRenderer } from "three";
 import { IScene, SceneCtr } from "./interfaces/scene";
 import { IGame } from "./interfaces/game";
 import { Input } from "./input";
@@ -10,6 +10,7 @@ import { IClient } from "../net/interfaces/client";
 import { IServer } from "../net/interfaces/server";
 import { Server } from "../net/server";
 import { Client } from "../net/client";
+import { AABB } from "../utils/math";
 
 export class Game implements IGame {
     private _scenes: Map<string, IScene> = new Map();
@@ -141,6 +142,14 @@ export class Game implements IGame {
         const size = new Vector2();
         this.renderer.getSize(size);
         return size;
+    }
+
+    public getViewport(): AABB {
+        const vec = new Vector4();
+        const size = this.getSize();
+        this.renderer.getViewport(vec);
+        const pos = new Vector2(vec.x, size.y - vec.height - vec.y);
+        return new AABB(pos, new Vector2(pos.x + vec.width, pos.y + vec.height));
     }
 
     public addScene<T extends IScene>(name: string, scene: SceneCtr<T>): T {

@@ -1,6 +1,7 @@
 import { IComponent } from "../../ecs/interfaces/component";
 
 export interface IScript {
+    onInit(): void;
     onStart(): void;
     onBeforeUpdate(): void;
     onUpdate(dt: number): void;

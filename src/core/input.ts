@@ -151,7 +151,7 @@ export class Mouse extends InputDevice implements IInputDevice  {
     public buttons = [Buttons.MouseLeft, Buttons.MouseMiddle, Buttons.MouseRight];
     public axes = [Axes.MouseDelta, Axes.MousePosition, Axes.MouseWheel];
 
-    register(element: HTMLElement): void {
+    register(element: HTMLCanvasElement): void {
 
         this.buttonMap.set(Buttons.MouseLeft, false);
         this.buttonMap.set(Buttons.MouseMiddle, false);
@@ -202,9 +202,14 @@ export class Mouse extends InputDevice implements IInputDevice  {
         });
 
         element.addEventListener('mousemove', (e) => {
-            const rect = element.getBoundingClientRect();
-            const newPos = new Vector2(e.x - rect.left, e.y - rect.top);
-            this._tmpPos = newPos;
+            const rect = element.getBoundingClientRect()
+            const scaleX = element.width / rect.width;
+            const scaleY = element.height / rect.height;
+            
+            this._tmpPos = new Vector2(
+                (e.clientX - rect.left) * scaleX,
+                (e.clientY - rect.top) * scaleY
+            );
         });
     }
 
@@ -240,7 +245,7 @@ export class Input implements IInput {
         if (!this.axes.has(axis)) {
             throw new Error(`Axis ${axis} does not exist`);
         }
-        return this.axes.get(axis)!;
+        return this.axes.get(axis)!.clone();
     }
     getButton(button: Buttons): boolean {
         if (!this.buttons.has(button)) return false;

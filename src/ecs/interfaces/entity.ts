@@ -6,6 +6,7 @@ import { ComponentCtr, ComponentData, IComponent } from "./component";
 export interface EntityData {
     id: number;
     name: string;
+    active?: boolean;
     children: EntityData[];
     components: ComponentData[];
 }
@@ -13,6 +14,7 @@ export interface EntityData {
 export interface IEntity {
     id: number;
     name: string;
+    active: boolean;
     parent?: IEntity;
     children: IEntity[];
     transform: ITransform;
@@ -35,4 +37,8 @@ export interface IEntity {
     removeComponents<T extends IComponent>(ctr: ComponentCtr<T>): void;
 
     getChild(name: string): IEntity | undefined;
+
+    removeChildren(): void;
+
+    notifyUpdate(): void;
 }

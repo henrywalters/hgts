@@ -10,6 +10,12 @@ export abstract class Renderable extends Component {
         return this.meshes[0];
     }
 
+    setActive(active: boolean) {
+        for (const mesh of this.meshes) {
+            mesh.visible = active;
+        }
+    }
+
     addMeshes(scene: Scene): void {
         this.meshes.push(new Mesh());
         this.updateMeshes(scene);

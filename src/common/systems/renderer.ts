@@ -92,35 +92,6 @@ export class Renderer extends System {
 
     onUpdate(dt: number): void {
 
-        this.scene.components.forEach(SpriteSheet, (ss) => {
-
-            if (!Assets.spriteSheets.has(ss.spriteSheet)) return;
-
-            const sheet = Assets.spriteSheets.get(ss.spriteSheet);
-
-            const mesh = ss.entity.getComponent(MeshPrimitive);
-
-            if (!mesh) return;
-
-            if (ss.animated) {
-                ss.timeSinceTick += dt;
-                const tickRate = ss.animationSpeed / (sheet.cells.x * sheet.cells.y);
-                while (ss.timeSinceTick > tickRate) {
-                    ss.index++;
-                    ss.timeSinceTick -= tickRate;
-                }
-            }
-
-            ss.index = ss.index % (sheet.cells.x * sheet.cells.y);
-            const uv = sheet.getCell(sheet.getCellPos(ss.index));
-
-            mesh.texture = ss.spriteSheet;
-            mesh.textureMin = uv.min;
-            mesh.textureMax = uv.max;
-
-            mesh.notifyUpdate();
-        })
-
         this.scene.components.forEach(Smooth, (smooth) => {
             const delta = new Vector3();
             delta.subVectors(smooth.targetPosition, smooth.entity.transform.position);

@@ -21,6 +21,7 @@ export class Script implements IScript {
         this._entity = component.entity;
     }
 
+    onInit(): void {}
     onStart(): void {}
     onBeforeUpdate(): void {}
     onUpdate(dt: number): void {}
@@ -75,6 +76,8 @@ class _ScriptRegistry {
         }
 
         const script = new (this.registry.get(name)!.ctr)(component);
+
+        script.onInit();
 
         this.registry.get(name)!.instances.set(component.id, script);
 

@@ -66,6 +66,7 @@ export function serializeEntity(entity: IEntity): EntityData {
     const data: EntityData = {
         id: entity.id,
         name: entity.name,
+        active: entity.active ? true : false,
         children: [],
         components: []
     };
@@ -100,6 +101,9 @@ function _deserializeEntity(entity: IEntity, scene: IScene, data: EntityData, pr
         deserializeComponent(scene, entity, componentData);
     }
 
+    entity.name = data.name;
+    entity.active = data.active === void 0 ? true : data.active;
+    
     for (const child of data.children) {
         let childEntity: IEntity;
         if (preserveIds) {

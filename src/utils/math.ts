@@ -9,6 +9,8 @@ export class AABB implements IAABB {
     min: Vector2;
     max: Vector2;
 
+    public get size() { return this.max.clone().sub(this.min); }
+
     constructor(min: Vector2, max: Vector2) {
         this.min = min;
         this.max = max;
@@ -32,6 +34,7 @@ export class AABB implements IAABB {
     intersects(other: AABB) {
         return this.min.x < other.max.x && this.max.x > other.min.x && this.min.y < other.max.y && this.max.y > other.min.y;
     }
+
 }
 
 export function sweepAABB(p0: Vector2, p1: Vector2, aabb: IAABB): number | null {
