@@ -46,6 +46,7 @@ export enum Buttons {
     KeyRight,
     KeyDown,
     KeyLeft,
+    KeyEscape,
 }
 
 export enum DeviceType {

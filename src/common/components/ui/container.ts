@@ -1,4 +1,4 @@
-import { BoxGeometry, Color, Euler, Mesh, MeshBasicMaterial, Scene } from "three";
+import { BoxGeometry, Color, Euler, Material, Mesh, MeshBasicMaterial, Scene } from "three";
 import { Float, Param, Types } from "../../../core/reflection";
 import { UIRenderableElement } from "./element";
 
@@ -43,6 +43,10 @@ export class Container extends UIRenderableElement {
 
         if (mesh.geometry) {
             mesh.geometry.dispose();
+        }
+
+        if (mesh.material) {
+            (mesh.material as Material).dispose();
         }
 
         // if (mesh.material) {

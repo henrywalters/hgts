@@ -147,8 +147,6 @@ export const BinaryTypes: {[key: string]: BinaryField} = {
     },
     [Types.Array]: {
         length: (field: Field, value: any[]) => {
-            console.log(field, value);
-            console.log(value, Reflection.getParams(field.ctr ? field.ctr : null));
             if (!field.subType) {
                 throw new Error(`Array requires subType parameter`);
             } 
@@ -157,7 +155,6 @@ export const BinaryTypes: {[key: string]: BinaryField} = {
             for (const el of value) {
                 size += byteLength({type: field.subType, ctr: field.ctr}, el);
             }
-            console.log(size);
             return size;
         },
         write(field: Field, view: DataView, offset: number, value: any[]) {
@@ -167,17 +164,12 @@ export const BinaryTypes: {[key: string]: BinaryField} = {
             view.setInt32(offset, value.length);
             offset += 4;
 
-            console.log(field, view, offset);
-            console.log(value, Reflection.getParams(field.ctr ? field.ctr : null));
-
             for (const el of value) {
                 BinaryTypes[field.subType].write(field, view, offset, el);
                 offset += byteLength({type: field.subType, ctr: el}, el);
             }
         },
         read(field: Field, view: DataView, offset: number) {
-            console.log(field, view, offset);
-            console.log(Reflection.getParams(field.ctr ? field.ctr : null));
             if (!field.subType) {
                 throw new Error(`Array requires subType parameter`);
             }
@@ -242,22 +234,28 @@ export class NetMessages implements INetMessages {
 
         const type = view.getUint8(0);
 
-        if (!this.config.has(type)) {
-            throw new Error(`Invalid Message Type ${type}`);
+        try {
+            if (!this.config.has(type)) {
+                throw new Error(`Invalid Message Type ${type}`);
+            }
+
+            const out = new (this.config.get(type)!)() as T;
+
+            out.type = type;
+
+            let offset = 1;
+
+            for (const [key, param] of Reflection.getParams(out)) {
+                out[key as (keyof T)] = BinaryTypes[param.type].read(param, view, offset);
+                offset += byteLength(param, out[key as (keyof T)]);
+            }
+            
+            return out;
+        } catch (e: any) {
+            console.error(`Failed to parse message type: ${type}`, e)
+            throw new Error(e);
         }
 
-        const out = new (this.config.get(type)!)() as T;
 
-        out.type = type;
-
-        let offset = 1;
-
-        for (const [key, param] of Reflection.getParams(out)) {
-            console.log(key, param);
-            out[key as (keyof T)] = BinaryTypes[param.type].read(param, view, offset);
-            offset += byteLength(param, out[key as (keyof T)]);
-        }
-        
-        return out;
     }
 }

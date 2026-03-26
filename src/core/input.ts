@@ -51,6 +51,7 @@ export class Keyboard extends InputDevice implements IInputDevice {
         Buttons.KeyRight,
         Buttons.KeyDown,
         Buttons.KeyLeft,
+        Buttons.KeyEscape,
     ];
 
     public axes = [
@@ -97,6 +98,8 @@ export class Keyboard extends InputDevice implements IInputDevice {
         // Navigation / misc
         Tab: Buttons.KeyTab,
         Space: Buttons.KeySpace,
+
+        Escape: Buttons.KeyEscape,
 
         ArrowUp: Buttons.KeyUp,
         ArrowRight: Buttons.KeyRight,

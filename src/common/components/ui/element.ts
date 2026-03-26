@@ -191,6 +191,9 @@ export abstract class UIRenderableElement extends UIElement {
 
     removeMeshes(scene: Scene) {
         for (const mesh of this.meshes) {
+            if (mesh.geometry) {
+                mesh.geometry.dispose();
+            }
             scene.remove(mesh);
         }
         this.meshes = [];

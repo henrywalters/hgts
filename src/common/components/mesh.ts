@@ -135,6 +135,7 @@ export class TextMesh extends Renderable {
     }
 
     updateMeshes(scene: Scene): void {
+
         if (!Assets.fonts.has(this.font)) {
             console.warn(`Font does not exist ${this.font}`);
             return;

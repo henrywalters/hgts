@@ -1,4 +1,4 @@
-import { DoubleSide, Euler, Float32BufferAttribute, Mesh, MeshBasicMaterial, PlaneGeometry, Scene, Vector2 } from "three";
+import { DoubleSide, Euler, Float32BufferAttribute, Material, Mesh, MeshBasicMaterial, PlaneGeometry, Scene, Vector2 } from "three";
 import { Param, String, Types } from "../../../core/reflection";
 import { UIRenderableElement } from "./element";
 import { Assets } from "../../../core/assets";
@@ -37,6 +37,10 @@ export class Image extends UIRenderableElement {
 
         if (mesh.geometry) {
             mesh.geometry.dispose();
+        }
+        
+        if (mesh.material) {
+            (mesh.material as Material).dispose();
         }
 
         mesh.geometry = new PlaneGeometry(this.innerSize.x, this.innerSize.y);

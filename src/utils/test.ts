@@ -5,7 +5,7 @@ export interface ITest {
 
 export function run_test(test: ITest) {
     const actual = test.run();
-    if (actual === test.expected) {
+    if (JSON.stringify(actual) === JSON.stringify(test.expected)) {
         return true;
     }
     console.warn(`Expected: `, test.expected, 'Got: ', actual);

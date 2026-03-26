@@ -129,7 +129,7 @@ export class Scene implements IScene {
         const entity = this.getEntity(id);
 
         if (!entity) {
-            console.error(`Entity #${id} does not exist`);
+            console.warn(`Entity #${id} does not exist`);
             return;
         }
 
@@ -140,7 +140,7 @@ export class Scene implements IScene {
         if (parentId) {
             const parent = this.getEntity(parentId);
             if (!parent) {
-                console.error(`Entity #${parentId} does not exist`);
+                console.warn(`Entity #${parentId} does not exist`);
                 return;
             }
             entity.parent = parent;
