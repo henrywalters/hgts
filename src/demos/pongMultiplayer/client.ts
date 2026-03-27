@@ -223,8 +223,8 @@ export class PongClientManifest implements IManifest {
     };
     client = {
         address: {
-            host: "localhost",
-            port: 4200,
+            secure: false,
+            url: "localhost:4200",
         },
         clientMessages: ClientMessages,
         serverMessages: ServerMessages,

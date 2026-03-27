@@ -17,12 +17,19 @@ export class Server extends NetElement implements IServer {
     constructor(address: INetAddress, client: INetMessages, server: INetMessages) {
         super(address, client, server);
 
-        this._wss = new WebSocketServer({host: this.address.host, port: this.address.port});
+        if (!this.address.socketAddress) {
+            throw new Error("Socket Address required for Server");
+        }
 
-        console.log(`Websocket Server running on port: ${this.address.port}`);
+        this._wss = new WebSocketServer({host: this.address.socketAddress.host, port: this.address.socketAddress.port});
+
+        console.log(`Websocket Server running on port: ${this.address.socketAddress.port}`);
 
         this.wss.on('connection', (ws) => {
-            console.log(`Client Connected to port ${this.address.port}`);
+            if (!this.address.socketAddress) {
+                throw new Error("Socket Address required for Server");
+            }
+            console.log(`Client Connected to port ${this.address.socketAddress.port}`);
             this.clients.add(ws);
             
             this.onEvent({type: NetEvents.Connected});
@@ -44,7 +51,10 @@ export class Server extends NetElement implements IServer {
             });
 
             ws.on('close', () => {
-                console.log(`Client disconnected from port ${this.address.port}`);
+                if (!this.address.socketAddress) {
+                    throw new Error("Socket Address required for Server");
+                }
+                console.log(`Client disconnected from port ${this.address.socketAddress.port}`);
                 this.onEvent({type: NetEvents.Disconnected});
                 this.events.push({
                     type: NetEvents.Disconnected,

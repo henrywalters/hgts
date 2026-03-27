@@ -1,5 +1,5 @@
 import { INetMessage, INetMessages, QueuedMessage } from "./interfaces/messages";
-import { INetElement, INetAddress, NetEvent } from "./interfaces/net";
+import { INetElement, INetAddress, NetEvent, getNetAddressString } from "./interfaces/net";
 
 export interface NetMessageFilter {
     types: Set<number>;
@@ -31,7 +31,7 @@ export abstract class NetElement implements INetElement {
     public onEvent: (event: NetEvent) => void = (_) => {};
 
     public get connectionString() {
-        return `ws://${this.address.host}:${this.address.port}`;
+        return getNetAddressString(this.address);
     }
 
     constructor(address: INetAddress, client: INetMessages, server: INetMessages) {

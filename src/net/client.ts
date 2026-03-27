@@ -31,7 +31,7 @@ export class Client extends NetElement implements IClient {
 
     private connect() {
 
-        console.log(`Attempting to connect to server: ${this.address.host}:${this.address.port}`);
+        console.log(`Attempting to connect to server: ${this.connectionString}`);
 
         try {
             this._socket = new WebSocket(this.connectionString);
@@ -46,14 +46,14 @@ export class Client extends NetElement implements IClient {
             } 
 
             this.socket.onopen = () => {
-                console.log(`Connected to server: ${this.address.host}:${this.address.port}`);
+                console.log(`Connected to server: ${this.connectionString}`);
                 this._connected = true;
                 this.onEvent({type: NetEvents.Connected});
                 this.events.push({type: NetEvents.Connected});
             }
 
             this.socket.onclose = () => {
-                console.log(`Disconnected from server: ${this.address.host}:${this.address.port}`);
+                console.log(`Disconnected from server: ${this.connectionString}`);
                 this._connected = false;
                 this.onEvent({type: NetEvents.Disconnected});
                 setTimeout(() => this.connect(), this.connectionDelay);

@@ -29,7 +29,7 @@ export class Text extends UIRenderableElement {
     @Param({type: Types.Enum, enum: TextHAlignment})
     alignment: TextHAlignment = TextHAlignment.Left;
 
-    cursor: Mesh = new Mesh();
+    // cursor: Mesh = new Mesh();
 
     getTextSize() {
         return this.measureText(this.text, Assets.fonts.get(this.font));
@@ -102,15 +102,17 @@ export class Text extends UIRenderableElement {
             scene.add(mesh);
         }
 
-        this.cursor = new Mesh();
-        this.cursor.geometry = new BoxGeometry(this.fontSize / 4, this.fontSize, 1);
-        this.cursor.material = new MeshBasicMaterial({
-            color: this.color,
-            transparent: this.opacity < 1,
-            opacity: this.opacity,
-        });
+        // this.cursor = new Mesh();
+        // this.cursor.geometry = new BoxGeometry(this.fontSize / 4, this.fontSize, 1);
+        // this.cursor.material = new MeshBasicMaterial({
+        //     color: this.color,
+        //     transparent: this.opacity < 1,
+        //     opacity: this.opacity,
+        // });
+        
+        // this.meshes.push(this.cursor);
 
-        this.cursor.visible = false;
+        // this.cursor.visible = false;
 
         this.positionMeshes(scene);
     }
@@ -167,16 +169,16 @@ export class Text extends UIRenderableElement {
             );
         }
 
-        // this.cursor.position.setX(pos.x);
-        this.cursor.position.setX(cursorPos.x );
-        this.cursor.position.setY(cursorPos.y);
-        this.cursor.position.setZ(10);
+        // // this.cursor.position.setX(pos.x);
+        // this.cursor.position.setX(cursorPos.x );
+        // this.cursor.position.setY(cursorPos.y);
+        // this.cursor.position.setZ(10);
 
-        scene.add(this.cursor);
+        // scene.add(this.cursor);
     }
 
     updateMeshes(scene: Scene): void {
-        scene.remove(this.cursor);
+        // scene.remove(this.cursor);
         this.removeMeshes(scene);
         this.addMeshes(scene);
     }

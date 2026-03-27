@@ -363,8 +363,11 @@ export class PongServerManifest implements IManifest {
     };
     server = {
         address: {
-            host: "localhost",
-            port: 4200,
+            secure: false,
+            socketAddress: {
+                host: "localhost",
+                port: 4200,
+            }
         },
         clientMessages: ClientMessages,
         serverMessages: ServerMessages,

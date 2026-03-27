@@ -85,6 +85,15 @@ export class UI extends System {
             if (e.type === EntityEvents.Change) {
                 this.setActive(e.entity, e.entity.active);
             }
+            // if (e.type === EntityEvents.Remove) {
+            //     this.scene.traverse(e.entity, (entity) => {
+            //         for (const type of this.registered) {
+            //             this.scene.components.forEach(type, (component) => {
+            //                 component.removeMeshes();
+            //             });
+            //         }
+            //     })
+            // }
 
             if (!e.component || !(e.component instanceof UIRenderableElement)) continue;
             if (e.type === EntityEvents.AddComponent) {

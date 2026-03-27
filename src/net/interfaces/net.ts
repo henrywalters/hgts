@@ -11,9 +11,26 @@ export interface NetEvent {
     socket?: WebSocket;
 }
 
-export interface INetAddress {
+export interface INetSocketAddress {
     host: string;
     port: number;
+}
+
+export interface INetAddress {
+    secure: boolean;
+    socketAddress?: INetSocketAddress;
+    url?: string;
+}
+
+export function getNetAddressString(addr: INetAddress) {
+    const protocol = addr.secure ? 'wss' : 'ws';
+    if (addr.url) {
+        return `${protocol}://${addr.url}`;
+    } else if (addr.socketAddress) {
+        return `${protocol}://${addr.socketAddress.host}:${addr.socketAddress.port}`;
+    } else {
+        throw new Error("Socket Address or URL required for net address");
+    }
 }
 
 export interface INetElement {
