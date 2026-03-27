@@ -1,8 +1,10 @@
 import { ITest, run_test } from "../utils/test";
+import { LINE_TEST } from "./math";
 import { NET_TEST } from "./net";
 
 export const TESTS: ITest[] = [
     NET_TEST,
+    LINE_TEST,
 ];
 
 function evaluate() {

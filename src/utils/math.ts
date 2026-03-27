@@ -65,3 +65,38 @@ export function sweepAABB(p0: Vector2, p1: Vector2, aabb: IAABB): number | null 
 
     return tMin;
 }
+
+export function bresenham(p0: Vector2, p1: Vector2): Vector2[] {
+
+    const pt = p0.clone();
+
+    const points: Vector2[] = [];
+
+    const dx = Math.abs(p1.x - p0.x);
+    const dy = Math.abs(p1.y - p0.y);
+
+    const sx = p0.x < p1.x ? 1 : -1;
+    const sy = p0.y < p1.y ? 1 : -1;
+
+    let err = dx - dy;
+
+    while (true) {
+        points.push(pt.clone());
+
+        if (pt.x == p1.x && pt.y == p1.y) break;
+
+        const e2 = 2 * err;
+
+        if (e2 > -dy) {
+            err -= dy;
+            pt.setX(pt.x + sx);
+        }
+
+        if (e2 < dx) {
+            err += dx;
+            pt.setY(pt.y + sy);
+        }
+    }
+
+    return points;
+}
