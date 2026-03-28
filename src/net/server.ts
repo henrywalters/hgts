@@ -23,7 +23,7 @@ export class Server extends NetElement implements IServer {
 
         this._wss = new WebSocketServer({host: this.address.socketAddress.host, port: this.address.socketAddress.port});
 
-        console.log(`Websocket Server running on port: ${this.address.socketAddress.port}`);
+        console.log(`Websocket Server running on  ${this.address.socketAddress.host}:${this.address.socketAddress.port}`);
 
         this.wss.on('connection', (ws) => {
             if (!this.address.socketAddress) {
