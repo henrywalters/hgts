@@ -24,7 +24,7 @@ export interface IGame {
     
     run(): void;
 
-    tick(headless: boolean): void;
+    tick(timestamp: number, headless: boolean): void;
 
     getSize(): Vector2;
     getViewport(): AABB;

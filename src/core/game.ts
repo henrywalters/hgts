@@ -23,6 +23,8 @@ export class Game implements IGame {
     private _client?: IClient;
     private _server?: IServer;
 
+    private _lastTimestamp: number = 0;
+
     public get client() {
         if (!this._client) {
             throw new Error("Client not registered");
@@ -169,23 +171,30 @@ export class Game implements IGame {
         }
     }
 
-    public tick(headless: boolean = false) {
+    public tick(timestamp: number, headless: boolean = false) {
+
+        const dt = (timestamp - this._lastTimestamp) / 1000;
+        this._lastTimestamp = timestamp;
 
         if (!headless) {
             this.input.update();
         }
+        
+        // console.log(this.clock.getDelta());
+
+        // const dt = this.clock.getDelta();
 
         if (this.activeScene !== null) {
-            this.scenes.get(this.activeScene)!.update(this.clock.getDelta());
+            this.scenes.get(this.activeScene)!.update(dt);
         }
 
         if (!headless) {
-            requestAnimationFrame((t) => {this.tick()});
+            requestAnimationFrame((t) => {this.tick(t)});
         }
     }
 
     public run() {
-        requestAnimationFrame((t) => {this.tick()});
+        requestAnimationFrame((t) => {this.tick(t)});
     }
 
     public resize(width: number, height: number): void {

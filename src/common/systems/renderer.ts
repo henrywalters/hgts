@@ -93,20 +93,40 @@ export class Renderer extends System {
     onUpdate(dt: number): void {
 
         this.scene.components.forEach(Smooth, (smooth) => {
+
+            // // smooth.entity.transform.position = smooth.targetPosition.clone();
+            // return
+
             const delta = new Vector3();
             delta.subVectors(smooth.targetPosition, smooth.entity.transform.position);
             const mag = delta.length();
-            delta.normalize();
-
-            const change = delta.clone().multiplyScalar(dt * smooth.speed);
 
             if (mag <= 0.001) {
-                smooth.targetPosition = smooth.entity.transform.position;
-            } else if (mag < change.length()) {
-                smooth.entity.transform.position.add(delta.clone().multiplyScalar(mag));
-            } else {
-                smooth.entity.transform.position.add(change);
+                return; // Already there, nothing to do
             }
+
+            const step = smooth.speed * dt; // 1.5x character speed to handle late packets
+
+            if (mag <= step) {
+                smooth.entity.transform.position.copy(smooth.targetPosition); // snap cleanly
+            } else {
+                smooth.entity.transform.position.addScaledVector(delta.normalize(), step);
+            }
+
+            // const delta = new Vector3();
+            // delta.subVectors(smooth.targetPosition, smooth.entity.transform.position);
+            // const mag = delta.length();
+            // delta.normalize();
+
+            // const change = delta.clone().multiplyScalar(dt * smooth.speed);
+
+            // if (mag <= 0.001) {
+            //     smooth.targetPosition = smooth.entity.transform.position;
+            // } else if (mag < change.length()) {
+            //     smooth.entity.transform.position.add(delta.clone().multiplyScalar(mag));
+            // } else {
+            //     smooth.entity.transform.position.add(change);
+            // }
         })
     }
 
