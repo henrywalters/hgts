@@ -154,6 +154,14 @@ export class Game implements IGame {
         return new AABB(pos, new Vector2(pos.x + vec.width, pos.y + vec.height));
     }
 
+    public getScene(name: string): IScene {
+        if (!this.scenes.has(name)) {
+            throw new Error("Scene does not exist");
+        }
+
+        return this.scenes.get(name)!;
+    }
+
     public addScene<T extends IScene>(name: string, scene: SceneCtr<T>): T {
         const obj = new scene(this);
         this.scenes.set(name, obj);
@@ -166,7 +174,7 @@ export class Game implements IGame {
         }
         this.activeScene = name;
         if (this.activeScene !== null) {
-            this.scenes.get(this.activeScene)!.onActivate();
+            this.scenes.get(this.activeScene)!.activate();
             this.sceneEvents.emit({type: SceneEvents.New});
         }
     }

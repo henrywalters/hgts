@@ -18,6 +18,8 @@ export interface IGame {
 
     sceneEvents: EventListenerPool<SceneEvent>;
 
+    getScene(name: string): IScene;
+
     addScene<T extends IScene>(name: string, scene: SceneCtr<T>): T;
     
     activateScene(name: string | null): void;

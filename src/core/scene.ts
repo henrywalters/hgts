@@ -40,9 +40,31 @@ export class Scene implements IScene {
     }
 
     clear() {
+        for (const entity of this.entities) {
+            const behavior = entity.getComponent(Behavior);
+            if (behavior) {
+                ScriptRegistry.remove(behavior.scriptName, behavior);
+            }
+            this.removeEntity(entity);
+        }
         this.components.clear();
         this._entities = [];
         this._entityMap = new Map();
+        this.scene.clear();
+    }
+
+    activate(): void {
+
+        for (const entity of this.entities) {
+            this.traverse(entity, (e) => {
+                const behavior = e.getComponent(Behavior);
+                if (behavior) {
+                    behavior.script?.onStart();
+                }
+            })
+        }
+
+        this.onActivate();
     }
 
     save(): SceneData {
@@ -118,7 +140,6 @@ export class Scene implements IScene {
         if (this._entityMap.has(id)) {
             return this._entityMap.get(id) as Entity;
         }
-        console.log(this._entityMap, id);
         return null;
     }
 

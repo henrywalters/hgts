@@ -19,6 +19,8 @@ export interface IScene {
 
     entityEvents: EventListenerPool<EntityEvent>;
 
+    activate(): void;
+
     clear(): void;
 
     save(): SceneData;

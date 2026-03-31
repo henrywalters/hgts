@@ -95,6 +95,12 @@ class _ScriptRegistry {
 
         return this.registry.get(name)!.instances.get(component.id)!;
     }
+
+    public remove(name: string, component: IComponent) {
+        if (this.registry.has(name) && this.registry.get(name)!.instances.has(component.id)) {
+            this.registry.get(name)!.instances.delete(component.id);
+        }
+    }
 }
 
 export const ScriptRegistry = new _ScriptRegistry();

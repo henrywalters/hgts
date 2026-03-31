@@ -45,6 +45,7 @@ export class Renderer extends System {
                 for (const type of this.managedComponents) {
                     const component = e.entity.getComponent<Renderable>(type);
                     if (component) {
+                        console.log("Removing meshes");
                         component.removeMeshes(this.scene.scene);
                     }
                 }

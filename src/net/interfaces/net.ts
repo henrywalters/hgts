@@ -40,4 +40,5 @@ export interface INetElement {
     serverMessages: INetMessages;
     flushEvents(cb: (event: NetEvent) => void): void;
     flushMessages(cb: (message: QueuedMessage) => void): void;
+    installFilter(types: number[], cb: (msg: QueuedMessage) => void): void;
 }
