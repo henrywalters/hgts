@@ -168,7 +168,7 @@ export class Mouse extends InputDevice implements IInputDevice  {
             e.preventDefault();
         });
 
-        element.addEventListener('mousewheel', (e) => {
+        element.addEventListener('wheel', (e) => {
             // @ts-ignore
             const x = e.deltaX === 0 ? 0 : Math.sign(e.deltaX);
             // @ts-ignore
