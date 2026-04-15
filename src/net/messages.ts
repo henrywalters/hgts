@@ -124,11 +124,11 @@ export const BinaryTypes: {[key: string]: BinaryField} = {
         write(field, view: DataView, offset: number, value: any) {
             const params = Reflection.getParams(value);
             for (const [key, param] of params) {
-            if (key in value) {
-                BinaryTypes[param.type].write(field, view, offset, value[key]);
-                offset += byteLength(param, value[key]);
+                if (key in value) {
+                    BinaryTypes[param.type].write(field, view, offset, value[key]);
+                    offset += byteLength(param, value[key]);
+                }
             }
-        }
 
         },
         read(field, view: DataView, offset: number) {
