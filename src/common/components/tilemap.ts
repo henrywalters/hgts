@@ -1,9 +1,10 @@
-import { Scene, Color, BoxGeometry, MeshBasicMaterial, InstancedMesh, Matrix4, Vector2 } from "three";
+import { Scene, Color, BoxGeometry, MeshBasicMaterial, InstancedMesh, Matrix4, Vector2, DoubleSide } from "three";
 import { Param, Types, Vector3 } from "../../core/reflection";
 import { Component } from "../../ecs/component";
 import { Grid } from "../../utils/grid";
 import { Renderable } from "./renderable";
 import { GridMap } from "../../utils/gridMap";
+import { Assets } from "../../core/assets";
 
 export class Tilemap extends Renderable {
 
@@ -15,15 +16,29 @@ export class Tilemap extends Renderable {
     @Param({type: Types.Color})
     color: Color = new Color('blue');
 
+    @Param({type: Types.String})
+    texture: string = '';
+
     addMeshes(scene: Scene) {
 
         const cellSize = this.grid.cellSize;
 
         const geometry = new BoxGeometry(cellSize.x, cellSize.y);
 
-        const material = new MeshBasicMaterial({
-            color: this.color
-        });
+        let material: MeshBasicMaterial;
+
+         if (Assets.textures.has(this.texture)) {
+                    
+            material = new MeshBasicMaterial({
+                map: Assets.textures.get(this.texture),
+                side: DoubleSide,
+            });
+            // this.mesh.material.needsUpdate = true;
+        } else {
+            material = new MeshBasicMaterial({
+                color: this.color,
+            })
+        }
 
         this.meshes.push(new InstancedMesh(geometry, material, this.gridMap.count));
 

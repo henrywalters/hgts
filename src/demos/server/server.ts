@@ -18,6 +18,7 @@ export class ServerDemo implements IManifest {
     systems = [];
     scripts = [];
     assets = {
+        autoload: true,
         fonts: [],
     };
     server = {

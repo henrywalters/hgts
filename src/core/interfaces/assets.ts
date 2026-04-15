@@ -31,6 +31,7 @@ export interface ISpriteSheetData extends ITextureData {
 }
 
 export interface IAssetsData {
+    autoload: boolean;
     fonts?: IFontData[];
     textures?: ITextureData[];
     spriteSheets?: ISpriteSheetData[];

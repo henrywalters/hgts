@@ -21,6 +21,8 @@ export const SpriteSheetToolManifest: IManifest = {
             }
         }
     },
-    assets: {},
+    assets: {
+        autoload: true,
+    },
     startScene: "tool"
 }

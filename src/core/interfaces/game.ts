@@ -5,6 +5,7 @@ import { IInput } from "./input";
 import { IClient } from "../../net/interfaces/client";
 import { IServer } from "../../net/interfaces/server";
 import { AABB } from "../../utils/math";
+import { IManifest } from "./manifest";
 
 export interface IGame {
     renderer: WebGLRenderer;
@@ -12,9 +13,12 @@ export interface IGame {
     input: IInput;
     clock: Clock;
     scenes: Map<string, IScene>;
+    manifest: IManifest;
 
     client: IClient;
     server: IServer;
+
+    running: boolean;
 
     sceneEvents: EventListenerPool<SceneEvent>;
 
@@ -23,8 +27,11 @@ export interface IGame {
     addScene<T extends IScene>(name: string, scene: SceneCtr<T>): T;
     
     activateScene(name: string | null): void;
+
+    loadAssets(callback: (msg: string) => void): Promise<void>;
     
     run(): void;
+    stop(): void;
 
     tick(timestamp: number, headless: boolean): void;
 

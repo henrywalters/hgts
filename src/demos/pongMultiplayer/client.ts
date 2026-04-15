@@ -214,6 +214,7 @@ export class PongClientManifest implements IManifest {
         RuntimeText,
     ];
     assets = {
+        autoload: true,
         fonts: [
             {
                 name: '8bit',

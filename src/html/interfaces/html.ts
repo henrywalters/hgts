@@ -16,6 +16,7 @@ export interface InputOptions {
 }
 
 export interface IHTMLGenerator {
+    createLabel(label: string): HTMLElement;
     createButton(label: string, onClick: () => void): HTMLElement;
     createInput(options: InputOptions, value: string | number | void, onChange: (val: string | number) => void): HTMLElement;
     createCheckbox(label: string, value: boolean, onChange: (val: boolean) => void): HTMLElement;

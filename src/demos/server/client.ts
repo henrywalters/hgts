@@ -25,6 +25,7 @@ export class ClientDemo implements IManifest {
     ];
     scripts = [];
     assets = {
+        autoload: true,
         fonts: [],
     };
     client = {

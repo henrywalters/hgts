@@ -358,7 +358,8 @@ export class PongServerManifest implements IManifest {
     ];
     systems = [];
     scripts = [];
-        assets = {
+    assets = {
+        autoload: true,
         fonts: [],
     };
     server = {

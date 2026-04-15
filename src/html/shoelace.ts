@@ -3,6 +3,13 @@ import { IHTMLGenerator, InputOptions, SelectOption } from "./interfaces/html";
 import { Types } from "../core/reflection";
 
 export class ShoelaceHTMLGenerator implements IHTMLGenerator {
+
+    createLabel(label: string): HTMLElement {
+        const text = document.createElement('h3');
+        text.innerHTML = label;
+        return text;
+    }
+
     createButton(label: string, onClick: () => void): HTMLElement {
         const btn = document.createElement('sl-button');
         btn.innerHTML = label;

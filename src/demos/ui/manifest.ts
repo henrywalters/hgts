@@ -25,8 +25,8 @@ export const UIManifest: IManifest = {
         }
     },
     assets: {
+        autoload: true,
         fonts: [
-
             {
                 name: 'runescape',
                 data: RSFont as unknown as FontData,

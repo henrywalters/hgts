@@ -25,6 +25,14 @@ export class Game implements IGame {
 
     private _lastTimestamp: number = 0;
 
+    private _running: boolean = false;
+
+    private _manifest: IManifest;
+
+    public get manifest() { return this._manifest; }
+
+    public get running() { return this._running; }
+
     public get client() {
         if (!this._client) {
             throw new Error("Client not registered");
@@ -62,6 +70,8 @@ export class Game implements IGame {
 
     constructor(manifest: IManifest, headless: boolean = false) {
 
+        this._manifest = manifest;
+
         if (headless) {
             console.log("Running in headless mode");
         } else {
@@ -93,28 +103,8 @@ export class Game implements IGame {
             this._client = new Client(manifest.client.address, manifest.client.clientMessages, manifest.client.serverMessages);
         }
 
-        if (manifest.assets.fonts) {
-            for (const font of manifest.assets.fonts) {
-                Assets.loadFont(font).then(() => {
-                    console.log(`Loaded font: ${font.name}`);
-                });
-            }
-        }
+        if (manifest.assets.autoload) {
 
-        if (manifest.assets.textures) {
-            for (const texture of manifest.assets.textures) {
-                Assets.loadTexture(texture).then(() => {
-                    console.log(`Loaded texture ${texture.name}`);
-                })
-            }
-        }
-
-        if (manifest.assets.spriteSheets) {
-            for (const ss of manifest.assets.spriteSheets) {
-                Assets.loadSpriteSheet(ss).then(() => {
-                    console.log(`Loaded spritesheet ${ss.name}`);
-                });
-            }
         }
 
         for (const script of manifest.scripts) {
@@ -138,6 +128,32 @@ export class Game implements IGame {
         }
 
         this.activateScene(manifest.startScene);
+    }
+
+    public async loadAssets(callback: (msg: string) => void) {
+        if (this.manifest.assets.fonts) {
+            for (const font of this.manifest.assets.fonts) {
+                callback(`Loading font: ${font.name}...`);
+                await Assets.loadFont(font);
+                callback(`Loaded font: ${font.name}`);
+            }
+        }
+
+        if (this.manifest.assets.textures) {
+            for (const texture of this.manifest.assets.textures) {
+                callback(`Loading texture ${texture.name}...`);
+                await Assets.loadTexture(texture);
+                callback(`Loaded texture ${texture.name}`);
+            }
+        }
+
+        if (this.manifest.assets.spriteSheets) {
+            for (const ss of this.manifest.assets.spriteSheets) {
+                callback(`Loading spritesheet ${ss.name}...`);
+                await Assets.loadSpriteSheet(ss);
+                callback(`Loaded spritesheet ${ss.name}`);
+            }
+        }
     }
 
     public getSize() {
@@ -196,13 +212,18 @@ export class Game implements IGame {
             this.scenes.get(this.activeScene)!.update(dt);
         }
 
-        if (!headless) {
+        if (!headless && this.running) {
             requestAnimationFrame((t) => {this.tick(t)});
         }
     }
 
     public run() {
+        this._running = true;
         requestAnimationFrame((t) => {this.tick(t)});
+    }
+
+    public stop() {
+        this._running = false;
     }
 
     public resize(width: number, height: number): void {

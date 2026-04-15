@@ -29,6 +29,7 @@ export class Rollerball implements IManifest {
         FreeCamera,
     ];
     assets = {
+        autoload: true,
         fonts: [],
     };
 }
