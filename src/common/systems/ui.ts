@@ -51,7 +51,7 @@ export class UI extends System {
                 const input = this.focused.getComponent(TextInput);
                 if (input) {
 
-                    if (!this.focused.getComponent(Focusable)!.focused) {
+                    if (input.focusable && !this.focused.getComponent(Focusable)!.focused) {
                         this.focused = null;
                         return;
                     }

@@ -36,7 +36,11 @@ export class CameraControllers extends System {
                 console.error("CameraZoom must have OrthographicCamera in entity or child");
                 return;
             }
-            camera.zoom = clamp(camera.zoom - scroll * dt * zoom.speed, zoom.minZoom, zoom.maxZoom);
+
+            const newZoom = camera.zoom - scroll * dt * zoom.speed;
+
+            camera.zoom = clamp(newZoom, zoom.minZoom, zoom.maxZoom);
+     
             camera.notifyUpdate();
         })
 

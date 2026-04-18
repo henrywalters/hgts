@@ -1,5 +1,5 @@
 import EventListenerPool from "../../../core/events";
-import { Param, Types } from "../../../core/reflection";
+import { Boolean, Param, Types } from "../../../core/reflection";
 import { Text } from "./text";
 
 export enum TextInputEvents {
@@ -12,6 +12,9 @@ export class TextInput extends Text {
 
     @Param({type: Types.Int})
     maxLength: number = 16;
+
+    @Boolean()
+    focusable: boolean = false;
 
     events: EventListenerPool<TextInputEvents> = new EventListenerPool();
 
